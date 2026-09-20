@@ -2,10 +2,6 @@ import React, { useState, useEffect } from 'react';
 
 function PrivateNotes() {
 
-    // =========================
-    // STATE
-    // =========================
-
     const [isUnlocked, setIsUnlocked] = useState(false);
 
     const [password, setPassword] = useState('');
@@ -18,9 +14,6 @@ function PrivateNotes() {
         content: ''
     });
 
-    // =========================
-    // KIỂM TRA PASSWORD
-    // =========================
 
     const handleUnlock = () => {
 
@@ -58,9 +51,6 @@ function PrivateNotes() {
             });
     };
 
-    // =========================
-    // LẤY NOTE KÍN
-    // =========================
 
     const fetchNotes = () => {
 
@@ -70,9 +60,6 @@ function PrivateNotes() {
             .catch(error => console.error(error));
     };
 
-    // =========================
-    // THÊM / SỬA
-    // =========================
 
     const handleSave = () => {
 
@@ -110,9 +97,6 @@ function PrivateNotes() {
             });
     };
 
-    // =========================
-    // XÓA
-    // =========================
 
     const handleDelete = (id) => {
 
@@ -128,9 +112,6 @@ function PrivateNotes() {
         }
     };
 
-    // =========================
-    // SỬA
-    // =========================
 
     const handleEdit = (note) => {
 
@@ -141,9 +122,6 @@ function PrivateNotes() {
         });
     };
 
-    // =========================
-    // MÀN HÌNH KHÓA
-    // =========================
 
     if (!isUnlocked) {
 
