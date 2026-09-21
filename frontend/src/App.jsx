@@ -13,10 +13,10 @@ function App() {
           <h3>Menu</h3>
           <ul style={{ listStyle: 'none', padding: 0 }}>
             <li style={{ marginBottom: '10px' }}>
-              <Link to="/">Ghi chú</Link>
+              <Link to="/">Notes thường</Link>
             </li>
             <li style={{ marginBottom: '10px' }}>   
-              <Link to="/private">Vùng kín</Link>
+              <Link to="/private">Notes riêng tư</Link>
             </li>
             <li style={{ marginBottom: '10px' }}>
               <Link to="/settings">Cài đặt</Link>
