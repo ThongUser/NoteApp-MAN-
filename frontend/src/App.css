@@ -220,3 +220,57 @@ body {
 .save-btn:hover {
     background: #1d4ed8;
 }
+/* Khung Sidebar */
+.sidebar-container {
+  width: 220px;
+  padding: 20px;
+  background-color: #ffffff;
+  border-right: 1px solid #e2e8f0;
+}
+
+/* Khung Menu có viền và nền xanh biển nhạt */
+.menu-box {
+  background-color: #e0f2fe; /* Nền xanh biển nhạt */
+  border: 2px solid #38bdf8; /* Viền xanh */
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.menu-title {
+  margin: 0 0 12px 0;
+  color: #0369a1;
+  font-size: 18px;
+}
+
+.menu-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.menu-item {
+  margin-bottom: 8px;
+}
+
+.menu-item:last-child {
+  margin-bottom: 0;
+}
+
+/* Kiểu dáng các nút Link trong Menu */
+.menu-link {
+  display: block;
+  padding: 8px 12px;
+  background-color: #ffffff;
+  color: #0284c7;
+  text-decoration: none;
+  border-radius: 6px;
+  font-weight: 600;
+  border: 1px solid #bae6fd;
+  transition: all 0.2s ease;
+}
+
+.menu-link:hover {
+  background-color: #0284c7;
+  color: #ffffff;
+  border-color: #0284c7;
+}
