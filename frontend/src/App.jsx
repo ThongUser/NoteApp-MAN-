@@ -1,96 +1,40 @@
 import React from 'react';
-import {
-    BrowserRouter,
-    Routes,
-    Route,
-    Link
-} from 'react-router-dom';
-
-import { AppProvider, useAppContext } from './AppContext';
-
+import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import Settings from './Settings';
 import Notes from './Notes';
 import PrivateNotes from './PrivateNotes';
 
-import './App.css';
-
-function Layout() {
-
-    const {
-        displayName,
-        theme
-    } = useAppContext();
-
-    return (
-        <div className={`app ${theme}`}>
-
-            {/* Sidebar */}
-            <aside className="sidebar">
-
-                <h2>My Notes</h2>
-
-                <nav>
-                    <Link to="/">
-                        🏠 Ghi chú
-                    </Link>
-
-                    <Link to="/settings">
-                        ⚙️ Cài đặt
-                    </Link>
-
-                    <Link to="/private">
-                        🔒 Vùng kín
-                    </Link>
-                </nav>
-
-                {/* Tên người dùng */}
-                <div className="user">
-                    👤 {displayName}
-                </div>
-
-            </aside>
-
-            {/* Content */}
-            <main className="content">
-
-                <Routes>
-
-                    <Route
-                        path="/"
-                        element={<Notes />}
-                    />
-
-                    <Route
-                        path="/settings"
-                        element={<Settings />}
-                    />
-
-                    <Route
-                        path="/private"
-                        element={<PrivateNotes />}
-                    />
-
-                </Routes>
-
-            </main>
-
-        </div>
-    );
-}
-
 function App() {
+  return (
+    <Router>
+      <div style={{ display: 'flex', minHeight: '100vh' }}>
+        {/* Sidebar Navigation */}
+        <div style={{ width: '200px', backgroundColor: '#f0f0f0', padding: '20px' }}>
+          <h3>Menu</h3>
+          <ul style={{ listStyle: 'none', padding: 0 }}>
+            <li style={{ marginBottom: '10px' }}>
+              <Link to="/">Ghi chú</Link>
+            </li>
+            <li style={{ marginBottom: '10px' }}>   
+              <Link to="/private">Vùng kín</Link>
+            </li>
+            <li style={{ marginBottom: '10px' }}>
+              <Link to="/settings">Cài đặt</Link>
+            </li>
+          </ul>
+        </div>
 
-    return (
-        <AppProvider>
-
-            <BrowserRouter>
-
-                <Layout />
-
-            </BrowserRouter>
-
-        </AppProvider>
-    );
+        {/* Content Area */}
+        <div style={{ flex: 1, padding: '20px' }}>
+          <Routes>
+            <Route path="/" element={<Notes />} />
+            <Route path="/private" element={<PrivateNotes />} />
+            <Route path="/settings" element={<Settings />} />
+          </Routes>
+        </div>
+      </div>
+    </Router>
+  );
 }
 
 export default App;
