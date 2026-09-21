@@ -9,6 +9,18 @@ app.use(express.json()); // Đọc dữ liệu JSON từ FE gửi lên
 
 const profilePath = path.join(__dirname, 'data', 'profile.json');
 
+// Hàm bổ trợ: Đọc file JSON an toàn (chống crash khi file rỗng/lỗi cú pháp)
+const safeReadJSON = (filePath, defaultData = []) => {
+  try {
+    if (!fs.existsSync(filePath)) return defaultData;
+    const content = fs.readFileSync(filePath, 'utf8').trim();
+    if (!content) return defaultData;
+    return JSON.parse(content);
+  } catch (error) {
+    return defaultData;
+  }
+};
+
 // ==========================================
 // 1. MODULE: PROFILE & CÀI ĐẶT (Sprint 1)
 // ==========================================
@@ -16,8 +28,7 @@ const profilePath = path.join(__dirname, 'data', 'profile.json');
 // API 1: Đọc thông tin Profile
 app.get('/api/profile', (req, res) => {
   try {
-    const rawData = fs.readFileSync(profilePath, 'utf8');
-    const profile = JSON.parse(rawData);
+    const profile = safeReadJSON(profilePath, {});
     res.json(profile);
   } catch (error) {
     res.status(500).json({ message: "Lỗi đọc file" });
@@ -28,7 +39,6 @@ app.get('/api/profile', (req, res) => {
 app.put('/api/profile', (req, res) => {
   try {
     const newProfile = req.body;
-    // Ghi đè dữ liệu mới vào file
     fs.writeFileSync(profilePath, JSON.stringify(newProfile, null, 2), 'utf8');
     res.json({ success: true, message: "Đã cập nhật Profile" });
   } catch (error) {
@@ -52,9 +62,8 @@ const getFilePath = (topic) => path.join(notesDir, `${topic}.json`);
 app.get('/api/notes/:topic', (req, res) => {
   const filePath = getFilePath(req.params.topic);
   try {
-    if (!fs.existsSync(filePath)) return res.json([]);
-    const data = fs.readFileSync(filePath, 'utf8');
-    res.json(JSON.parse(data));
+    const notes = safeReadJSON(filePath, []);
+    res.json(notes);
   } catch (error) {
     res.status(500).json({ message: "Lỗi đọc danh sách ghi chú" });
   }
@@ -64,7 +73,7 @@ app.get('/api/notes/:topic', (req, res) => {
 app.post('/api/notes/:topic', (req, res) => {
   const filePath = getFilePath(req.params.topic);
   try {
-    let notes = fs.existsSync(filePath) ? JSON.parse(fs.readFileSync(filePath, 'utf8')) : [];
+    let notes = safeReadJSON(filePath, []);
     const newNote = {
       id: Date.now().toString(),
       title: req.body.title || "Không tiêu đề",
@@ -84,7 +93,7 @@ app.post('/api/notes/:topic', (req, res) => {
 app.put('/api/notes/:topic/:id', (req, res) => {
   const filePath = getFilePath(req.params.topic);
   try {
-    let notes = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+    let notes = safeReadJSON(filePath, []);
     const index = notes.findIndex(n => n.id === req.params.id);
     if (index !== -1) {
       notes[index].title = req.body.title;
@@ -103,7 +112,7 @@ app.put('/api/notes/:topic/:id', (req, res) => {
 app.delete('/api/notes/:topic/:id', (req, res) => {
   const filePath = getFilePath(req.params.topic);
   try {
-    let notes = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+    let notes = safeReadJSON(filePath, []);
     const newNotes = notes.filter(n => n.id !== req.params.id);
     fs.writeFileSync(filePath, JSON.stringify(newNotes, null, 2), 'utf8');
     res.json({ success: true, message: "Đã xóa thành công" });
@@ -125,7 +134,7 @@ if (!fs.existsSync(privateNotesFile)) {
 // API Xác thực mật khẩu
 app.post('/api/private/auth', (req, res) => {
   try {
-    const profile = JSON.parse(fs.readFileSync(profilePath, 'utf8'));
+    const profile = safeReadJSON(profilePath, {});
     if (profile.password === req.body.password) {
       res.json({ success: true });
     } else {
@@ -139,8 +148,8 @@ app.post('/api/private/auth', (req, res) => {
 // API Lấy danh sách Ghi chú riêng tư
 app.get('/api/private/notes', (req, res) => {
   try {
-    const data = fs.readFileSync(privateNotesFile, 'utf8');
-    res.json(JSON.parse(data));
+    const notes = safeReadJSON(privateNotesFile, []);
+    res.json(notes);
   } catch (error) {
     res.status(500).json({ message: "Lỗi đọc ghi chú riêng tư" });
   }
@@ -149,7 +158,7 @@ app.get('/api/private/notes', (req, res) => {
 // API Thêm Ghi chú riêng tư
 app.post('/api/private/notes', (req, res) => {
   try {
-    let notes = JSON.parse(fs.readFileSync(privateNotesFile, 'utf8'));
+    let notes = safeReadJSON(privateNotesFile, []);
     const newNote = {
       id: Date.now().toString(),
       title: req.body.title || "Lưu bút mật",
