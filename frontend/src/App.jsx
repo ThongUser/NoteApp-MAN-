@@ -10,12 +10,26 @@ function App() {
   const [theme, setTheme] = useState('light');
 
   useEffect(() => {
+    const applyProfile = (profile) => {
+      if (!profile) return;
+      if (profile.displayName || profile.name) {
+        setDisplayName(profile.displayName || profile.name);
+      }
+      if (profile.theme) {
+        setTheme(profile.theme);
+      }
+      localStorage.setItem('user_profile', JSON.stringify({
+        displayName: profile.displayName || profile.name || 'Bạn',
+        theme: profile.theme || 'light',
+        password: profile.password || ''
+      }));
+    };
+
     const savedProfile = localStorage.getItem('user_profile');
     if (savedProfile) {
       try {
         const parsed = JSON.parse(savedProfile);
-        if (parsed.name) setDisplayName(parsed.name);
-        if (parsed.theme) setTheme(parsed.theme);
+        applyProfile(parsed);
       } catch (e) {}
     }
 
@@ -23,15 +37,16 @@ function App() {
       .then(res => res.json())
       .then(data => {
         if (data) {
-          if (data.name) setDisplayName(data.name);
-          if (data.theme) setTheme(data.theme);
+          applyProfile(data);
         }
       })
       .catch(() => {});
 
     const handleProfileUpdate = (event) => {
       if (event.detail) {
-        if (event.detail.name) setDisplayName(event.detail.name);
+        if (event.detail.displayName || event.detail.name) {
+          setDisplayName(event.detail.displayName || event.detail.name);
+        }
         if (event.detail.theme) setTheme(event.detail.theme);
       }
     };

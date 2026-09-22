@@ -7,24 +7,45 @@ function Settings({ currentTheme }) {
   const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
-    const savedProfile = localStorage.getItem('user_profile');
-    if (savedProfile) {
+    const loadProfile = async () => {
       try {
-        const parsed = JSON.parse(savedProfile);
-        if (parsed.name) setName(parsed.name);
-        if (parsed.theme) setSelectedTheme(parsed.theme);
-        if (parsed.password) setPassword(parsed.password);
-      } catch (e) {}
-    }
+        const res = await fetch('http://localhost:5000/api/profile');
+        if (!res.ok) throw new Error('Profile not found');
+        const profile = await res.json();
+        const nextName = profile.displayName || profile.name || 'Bạn';
+        setName(nextName);
+        setSelectedTheme(profile.theme || 'light');
+        setPassword(profile.password || '');
+        localStorage.setItem('user_profile', JSON.stringify({
+          displayName: nextName,
+          theme: profile.theme || 'light',
+          password: profile.password || ''
+        }));
+      } catch (e) {
+        const savedProfile = localStorage.getItem('user_profile');
+        if (savedProfile) {
+          try {
+            const parsed = JSON.parse(savedProfile);
+            if (parsed.displayName || parsed.name) setName(parsed.displayName || parsed.name);
+            if (parsed.theme) setSelectedTheme(parsed.theme);
+            if (parsed.password) setPassword(parsed.password);
+          } catch (err) {}
+        }
+      }
+    };
+
+    loadProfile();
   }, []);
 
   const handleSave = async () => {
-    const profileData = { name, theme: selectedTheme, password };
-    
-    // 1. Lưu vào localStorage
+    const profileData = {
+      displayName: name,
+      theme: selectedTheme,
+      password
+    };
+
     localStorage.setItem('user_profile', JSON.stringify(profileData));
 
-    // 2. Lưu API Backend
     try {
       await fetch('http://localhost:5000/api/profile', {
         method: 'PUT',
@@ -35,9 +56,8 @@ function Settings({ currentTheme }) {
       console.log("Không thể kết nối Server:", err);
     }
 
-    // 3. Đổi màu giao diện toàn ứng dụng sau khi đã bấm Lưu thay đổi
     window.dispatchEvent(new CustomEvent('profileUpdated', { detail: profileData }));
-    
+
     alert("Đã lưu thay đổi cài đặt!");
   };
 
