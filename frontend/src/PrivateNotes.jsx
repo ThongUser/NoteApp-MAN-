@@ -61,18 +61,17 @@ function PrivateNotes() {
       return;
     }
 
-    if (editingId) {
-      setNotes(notes.map(note => 
-        note.id === editingId ? { ...note, title, content } : note
-      ));
-      setEditingId(null);
-    } else {
-      const newNote = { id: Date.now(), title, content };
-      setNotes([...notes, newNote]);
-    }
+    const updatedNotes = editingId
+      ? notes.map(note => 
+          note.id === editingId ? { ...note, title, content } : note
+        )
+      : [...notes, { id: Date.now(), title, content }];
 
+    setNotes(updatedNotes);
+    setEditingId(null);
     setTitle('');
     setContent('');
+    window.dispatchEvent(new Event('notesUpdated'));
   };
 
   // Xử lý XÓA vĩnh viễn
@@ -82,6 +81,7 @@ function PrivateNotes() {
       setNotes(updatedNotes);
       localStorage.setItem('private_notes', JSON.stringify(updatedNotes));
     }
+    window.dispatchEvent(new Event('notesUpdated'));
   };
 
   // Bấm Sửa

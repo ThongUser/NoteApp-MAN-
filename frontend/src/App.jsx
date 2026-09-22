@@ -2,18 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Notes from './Notes';
 import PrivateNotes from './PrivateNotes';
 import Settings from './Settings';
-import Stats from './Stats';
-import { useAppContext } from './AppContext';
-
-function AddButton() {
-  const { addNote } = useAppContext();
-
-  const handleCreate = () => {
-    addNote({ title: 'Ghi chú mới' }); // Tự động thêm ngày tạo và lưu vào state
-  };
-
-  return <button onClick={handleCreate}>+ Tạo Tab mới</button>;
-}
+import StatsWrapper from './Stats'; // 👈 Import StatsWrapper
 
 function App() {
   const [activeTab, setActiveTab] = useState('regular');
@@ -21,14 +10,13 @@ function App() {
   const [theme, setTheme] = useState('light');
 
   useEffect(() => {
-    // Lấy cài đặt ban đầu
     const savedProfile = localStorage.getItem('user_profile');
     if (savedProfile) {
       try {
         const parsed = JSON.parse(savedProfile);
         if (parsed.name) setDisplayName(parsed.name);
         if (parsed.theme) setTheme(parsed.theme);
-      } catch (e) { }
+      } catch (e) {}
     }
 
     fetch('http://localhost:5000/api/profile')
@@ -39,9 +27,8 @@ function App() {
           if (data.theme) setTheme(data.theme);
         }
       })
-      .catch(() => { });
+      .catch(() => {});
 
-    // Lắng nghe sự kiện cập nhật giao diện sau khi bấm nút Lưu thay đổi
     const handleProfileUpdate = (event) => {
       if (event.detail) {
         if (event.detail.name) setDisplayName(event.detail.name);
@@ -56,7 +43,6 @@ function App() {
   const isDark = theme === 'dark';
 
   return (
-    
     <div style={{
       display: 'flex',
       minHeight: '100vh',
@@ -65,14 +51,17 @@ function App() {
       color: isDark ? '#f8fafc' : '#0f172a',
       transition: 'all 0.3s ease'
     }}>
-
+      
       {/* MENU BÊN TRÁI */}
       <div style={{
         width: '220px',
         backgroundColor: isDark ? '#1e293b' : '#e0f2fe',
         padding: '20px',
-        borderRight: isDark ? '1px solid #334155' : '1px solid #bae6fd'
+        borderRight: isDark ? '1px solid #334155' : '1px solid #bae6fd',
+        transition: 'all 0.3s ease'
       }}>
+        
+        {/* XIN CHÀO */}
         <div style={{
           marginBottom: '16px',
           fontSize: '14px',
@@ -93,8 +82,9 @@ function App() {
           Menu
         </h2>
 
+        {/* CÁC NÚT BẤM MENU */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-          <button
+          <button 
             onClick={() => setActiveTab('regular')}
             style={{
               padding: '10px 16px',
@@ -107,10 +97,10 @@ function App() {
               cursor: 'pointer'
             }}
           >
-            Notes thường
+            Trang chủ
           </button>
 
-          <button
+          <button 
             onClick={() => setActiveTab('private')}
             style={{
               padding: '10px 16px',
@@ -123,10 +113,27 @@ function App() {
               cursor: 'pointer'
             }}
           >
-            Notes riêng tư
+            Ghi chú riêng tư
           </button>
 
-          <button
+          {/* 🌟 NÚT THỐNG KÊ MỚI 🌟 */}
+          <button 
+            onClick={() => setActiveTab('stats')}
+            style={{
+              padding: '10px 16px',
+              backgroundColor: activeTab === 'stats' ? '#0284c7' : (isDark ? '#334155' : '#ffffff'),
+              color: activeTab === 'stats' ? '#ffffff' : (isDark ? '#f8fafc' : '#0f172a'),
+              border: isDark ? '1px solid #475569' : '1px solid #cbd5e1',
+              borderRadius: '8px',
+              textAlign: 'left',
+              fontWeight: '600',
+              cursor: 'pointer'
+            }}
+          >
+            Thống kê
+          </button>
+
+          <button 
             onClick={() => setActiveTab('settings')}
             style={{
               padding: '10px 16px',
@@ -145,10 +152,11 @@ function App() {
       </div>
 
       {/* NỘI DUNG CHÍNH */}
-      <div style={{ flex: 1, padding: '24px', backgroundColor: isDark ? '#0f172a' : '#f8fafc' }}>
+      <div style={{ flex: 1, padding: '24px', backgroundColor: isDark ? '#0f172a' : '#f8fafc', transition: 'all 0.3s ease' }}>
         {activeTab === 'regular' && <Notes theme={theme} />}
         {activeTab === 'private' && <PrivateNotes theme={theme} />}
-        {/* Truyền theme hiện tại sang Settings */}
+        {/* 🌟 CHUYỂN TRANG THỐNG KÊ 🌟 */}
+        {activeTab === 'stats' && <StatsWrapper theme={theme} />}
         {activeTab === 'settings' && <Settings currentTheme={theme} />}
       </div>
 
