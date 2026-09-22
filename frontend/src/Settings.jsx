@@ -1,111 +1,147 @@
 import React, { useState, useEffect } from 'react';
 
 function Settings() {
-  const [profile, setProfile] = useState({ displayName: '', theme: 'light', password: '' });
+  const [name, setName] = useState('binh');
+  const [theme, setTheme] = useState('light');
+  const [password, setPassword] = useState('123456');
   const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
-    fetch('http://localhost:5000/api/profile')
-      .then(res => res.json())
-      .then(data => {
-        setProfile(data);
-        document.body.style.backgroundColor = data.theme === 'dark' ? '#333' : '#fff';
-        document.body.style.color = data.theme === 'dark' ? '#fff' : '#000';
-      });
+    const savedProfile = localStorage.getItem('user_profile');
+    if (savedProfile) {
+      try {
+        const parsed = JSON.parse(savedProfile);
+        if (parsed.name) setName(parsed.name);
+        if (parsed.theme) setTheme(parsed.theme);
+        if (parsed.password) setPassword(parsed.password);
+      } catch (e) {}
+    }
   }, []);
 
-  const handleChange = (e) => {
-    setProfile({ ...profile, [e.target.name]: e.target.value });
-  };
-
   const handleSave = () => {
+    const profileData = { name, theme, password };
+    localStorage.setItem('user_profile', JSON.stringify(profileData));
+
     fetch('http://localhost:5000/api/profile', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(profile)
-    })
-      .then(res => res.json())
-      .then(() => {
-        alert("Lưu thành công!");
-        document.body.style.backgroundColor = profile.theme === 'dark' ? '#333' : '#fff';
-        document.body.style.color = profile.theme === 'dark' ? '#fff' : '#000';
-      });
+      body: JSON.stringify(profileData)
+    }).catch(err => console.log(err));
+
+    // Bắt sự kiện cập nhật giao diện toàn ứng dụng ngay lập tức
+    window.dispatchEvent(new Event('profileUpdated'));
+    alert("Đã lưu thay đổi cài đặt!");
   };
 
+  const isDark = theme === 'dark';
+
   return (
-    <div style={{ padding: '20px' }}>
-      <h2>Cài đặt hệ thống</h2>
-      
-      <div>
-        <label>Tên hiển thị: </label>
-        <input name="displayName" value={profile.displayName} onChange={handleChange} />
+    <div style={{
+      backgroundColor: isDark ? '#1e293b' : '#ffffff',
+      color: isDark ? '#f8fafc' : '#0f172a',
+      padding: '24px',
+      borderRadius: '12px',
+      border: isDark ? '1px solid #334155' : '1px solid #e2e8f0',
+      maxWidth: '500px'
+    }}>
+      <h2 style={{ marginTop: 0, marginBottom: '20px', fontSize: '22px' }}>⚙️ Cài đặt hệ thống</h2>
+
+      {/* Tên hiển thị */}
+      <div style={{ marginBottom: '16px' }}>
+        <label style={{ display: 'block', marginBottom: '6px', fontWeight: '600' }}>Tên hiển thị:</label>
+        <input 
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          style={{
+            padding: '8px 12px',
+            borderRadius: '6px',
+            border: isDark ? '1px solid #475569' : '1px solid #cbd5e1',
+            backgroundColor: isDark ? '#334155' : '#ffffff',
+            color: isDark ? '#ffffff' : '#000000',
+            width: '100%',
+            boxSizing: 'border-box'
+          }}
+        />
       </div>
 
-      <div style={{ marginTop: '10px' }}>
-        <label>Giao diện: </label>
-        <select name="theme" value={profile.theme} onChange={handleChange}>
+      {/* Giao diện */}
+      <div style={{ marginBottom: '16px' }}>
+        <label style={{ display: 'block', marginBottom: '6px', fontWeight: '600' }}>Giao diện:</label>
+        <select 
+          value={theme}
+          onChange={(e) => setTheme(e.target.value)}
+          style={{
+            padding: '8px 12px',
+            borderRadius: '6px',
+            border: isDark ? '1px solid #475569' : '1px solid #cbd5e1',
+            backgroundColor: isDark ? '#334155' : '#ffffff',
+            color: isDark ? '#ffffff' : '#000000',
+            width: '100%',
+            boxSizing: 'border-box'
+          }}
+        >
           <option value="light">Sáng</option>
           <option value="dark">Tối</option>
         </select>
       </div>
 
-      {/* --- MẬT KHẨU VÙNG KÍN (NÚT CON MẮT NẰM TRONG KHUNG CHỮ NHẬT) --- */}
-      <div style={{ marginTop: '10px', display: 'flex', alignItems: 'center' }}>
-        <label style={{ marginRight: '6px' }}>Mật khẩu vùng kín: </label>
-        
-        {/* Khung chữ nhật bao ngoài đóng vai trò làm viền cho input */}
+      {/* Mật khẩu vùng kín */}
+      <div style={{ marginBottom: '24px' }}>
+        <label style={{ display: 'block', marginBottom: '6px', fontWeight: '600' }}>Mật khẩu vùng kín:</label>
         <div style={{
-          display: 'inline-flex',
+          display: 'flex',
           alignItems: 'center',
-          border: '1px solid #767676',
-          backgroundColor: '#ffffff',
-          boxSizing: 'border-box'
+          border: isDark ? '1px solid #475569' : '1px solid #cbd5e1',
+          borderRadius: '6px',
+          overflow: 'hidden',
+          backgroundColor: isDark ? '#334155' : '#ffffff'
         }}>
-          {/* Ô nhập không viền */}
           <input 
-            type={showPassword ? 'text' : 'password'} 
-            name="password" 
-            value={profile.password} 
-            onChange={handleChange}
+            type={showPassword ? 'text' : 'password'}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
             style={{
+              padding: '8px 12px',
               border: 'none',
               outline: 'none',
-              padding: '3px 6px',
-              fontSize: '14px',
-              backgroundColor: 'transparent'
-            }} 
+              backgroundColor: 'transparent',
+              color: isDark ? '#ffffff' : '#000000',
+              flex: 1
+            }}
           />
-
-          {/* Nút bấm chứa icon con mắt (đã bỏ góc bo tròn) */}
           <button 
-            type="button" 
+            type="button"
             onClick={() => setShowPassword(!showPassword)}
             style={{
               border: 'none',
-              borderLeft: '1px solid #e5e5e5', // Đường gạch nhẹ ngăn cách (nếu muốn)
-              backgroundColor: '#dedede',
-              padding: '4px 8px',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              outline: 'none'
+              backgroundColor: isDark ? '#475569' : '#f1f5f9',
+              padding: '8px 12px',
+              cursor: 'pointer'
             }}
           >
-            {/* Icon Con Mắt (SVG) */}
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#000" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={isDark ? '#ffffff' : '#000000'} strokeWidth="2">
               <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
               <circle cx="12" cy="12" r="3" />
-              {/* Vạch gạch chéo khi ẩn mật khẩu */}
-              {!showPassword && (
-                <line x1="1" y1="1" x2="23" y2="23" stroke="#000" strokeWidth="2" />
-              )}
+              {!showPassword && <line x1="1" y1="1" x2="23" y2="23" stroke={isDark ? '#ffffff' : '#000000'} strokeWidth="2" />}
             </svg>
           </button>
         </div>
       </div>
 
-      <button onClick={handleSave} style={{ marginTop: '20px' }}>Lưu thay đổi</button>
+      <button 
+        onClick={handleSave}
+        style={{
+          padding: '10px 20px',
+          backgroundColor: '#0284c7',
+          color: '#ffffff',
+          border: 'none',
+          borderRadius: '6px',
+          fontWeight: '600',
+          cursor: 'pointer'
+        }}
+      >
+        Lưu thay đổi
+      </button>
     </div>
   );
 }
