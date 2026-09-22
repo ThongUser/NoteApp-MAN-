@@ -26,7 +26,7 @@ export default function Stats({ theme }) {
   useEffect(() => {
     updateStats();
 
-    // Lắng nghe sự kiện cập nhật real-time từ trang Notes
+    // Lắng nghe sự kiện cập nhật real-time
     window.addEventListener('notesChanged', updateStats);
     window.addEventListener('storage', updateStats);
 
@@ -40,7 +40,6 @@ export default function Stats({ theme }) {
   const getGroupedData = () => {
     if (!notes || notes.length === 0) return [];
 
-    // Sắp xếp ghi chú theo thứ tự thời gian tăng dần
     const sorted = [...notes].sort(
       (a, b) => new Date(a.createdAt || 0) - new Date(b.createdAt || 0)
     );
@@ -79,7 +78,7 @@ export default function Stats({ theme }) {
   return (
     <div style={{ maxWidth: '800px', margin: '0 auto', fontFamily: 'sans-serif' }}>
       
-      {/* KHỐI TIÊU ĐỀ VÀ NÚT LỌC THEO NGÀY / THÁNG / NĂM */}
+      {/* KHỐI TIÊU ĐỀ, NÚT LỌC VÀ TỔNG SỐ LƯỢNG */}
       <div style={{
         backgroundColor: isDark ? '#1e293b' : '#FAF9F6',
         padding: '20px',
@@ -96,39 +95,70 @@ export default function Stats({ theme }) {
           Thống kê ghi chú
         </h2>
 
-        {/* Nút lọc ngày / tháng / năm */}
-        <div style={{ display: 'flex', gap: '10px' }}>
-          {[
-            { key: 'day', label: 'Theo ngày' },
-            { key: 'month', label: 'Theo tháng' },
-            { key: 'year', label: 'Theo năm' },
-          ].map((item) => {
-            const isActive = timeMode === item.key;
-            return (
-              <button
-                key={item.key}
-                onClick={() => setTimeMode(item.key)}
-                style={{
-                  padding: '8px 18px',
-                  borderRadius: '8px',
-                  fontWeight: '600',
-                  fontSize: '14px',
-                  border: isActive ? 'none' : (isDark ? '1px solid #475569' : '1px solid #e2e8f0'),
-                  backgroundColor: isActive
-                    ? '#f59e0b' // Màu vàng chuẩn theo ảnh mẫu
-                    : (isDark ? '#334155' : '#ffffff'),
-                  color: isActive
-                    ? '#ffffff'
-                    : (isDark ? '#cbd5e1' : '#475569'),
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease',
-                  boxShadow: isActive ? '0 2px 6px rgba(245, 158, 11, 0.3)' : 'none'
-                }}
-              >
-                {item.label}
-              </button>
-            );
-          })}
+        {/* Hàng chứa Nút lọc (bên trái) và Badge tổng số lượng (bên phải ngoài cùng) */}
+        <div style={{
+          display: 'flex',
+          justify: 'space-between',
+          alignItems: 'center',
+          width: '100%',
+          flexWrap: 'wrap',
+          gap: '12px'
+        }}>
+          {/* Nút lọc ngày / tháng / năm */}
+          <div style={{ display: 'flex', gap: '10px' }}>
+            {[
+              { key: 'day', label: 'Theo ngày' },
+              { key: 'month', label: 'Theo tháng' },
+              { key: 'year', label: 'Theo năm' },
+            ].map((item) => {
+              const isActive = timeMode === item.key;
+              return (
+                <button
+                  key={item.key}
+                  onClick={() => setTimeMode(item.key)}
+                  style={{
+                    padding: '8px 18px',
+                    borderRadius: '8px',
+                    fontWeight: '600',
+                    fontSize: '14px',
+                    border: isActive ? 'none' : (isDark ? '1px solid #475569' : '1px solid #e2e8f0'),
+                    backgroundColor: isActive
+                      ? '#f59e0b'
+                      : (isDark ? '#334155' : '#ffffff'),
+                    color: isActive
+                      ? '#ffffff'
+                      : (isDark ? '#cbd5e1' : '#475569'),
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease',
+                    boxShadow: isActive ? '0 2px 6px rgba(245, 158, 11, 0.3)' : 'none'
+                  }}
+                >
+                  {item.label}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Badge tổng số ghi chú nằm sát lề bên phải ngoài cùng */}
+          <div style={{
+            backgroundColor: isDark ? '#334155' : '#ffffff',
+            padding: '6px 16px',
+            borderRadius: '20px',
+            border: isDark ? '1px solid #475569' : '1px solid #e2e8f0',
+            fontSize: '14px',
+            fontWeight: '600',
+            color: isDark ? '#f8fafc' : '#475569',
+            boxShadow: '0 2px 4px rgba(0,0,0,0.03)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            whiteSpace: 'nowrap'
+          }}>
+            <span>Tổng số ghi chú:</span>
+            <span style={{ fontSize: '16px', fontWeight: '800', color: '#f59e0b' }}>
+              {notes.length}
+            </span>
+          </div>
         </div>
       </div>
 
@@ -149,7 +179,6 @@ export default function Stats({ theme }) {
           Biểu đồ đường
         </h3>
 
-        {/* HIỂN THỊ BIỂU ĐỒ HOẶC THÔNG BÁO RỖNG */}
         {chartData.length === 0 ? (
           <div style={{
             textAlign: 'center',
@@ -167,9 +196,7 @@ export default function Stats({ theme }) {
   );
 }
 
-// ----------------------------------------------------
-// COMPONENT VẼ BIỂU ĐỒ ĐƯỜNG BẰNG SVG THUẦN
-// ----------------------------------------------------
+// COMPONENT VẼ BIỂU ĐỒ ĐƯỜNG SVG
 function SVGLineChart({ data, isDark }) {
   const width = 600;
   const height = 240;
@@ -181,11 +208,9 @@ function SVGLineChart({ data, isDark }) {
   const chartWidth = width - paddingLeft - paddingRight;
   const chartHeight = height - paddingTop - paddingBottom;
 
-  // Tính giá trị Y lớn nhất (tối thiểu là 4 để đúng theo hình mẫu)
   const maxVal = Math.max(4, ...data.map((d) => d.count));
   const yTicks = [0, 1, 2, 3, Math.max(4, maxVal)];
 
-  // Tính tọa độ cho các điểm
   const points = data.map((d, i) => {
     const x =
       data.length === 1
@@ -206,7 +231,7 @@ function SVGLineChart({ data, isDark }) {
         viewBox={`0 0 ${width} ${height}`}
         style={{ width: '100%', height: 'auto', display: 'block' }}
       >
-        {/* Lưới ngang nét đứt */}
+        {/* Lưới ngang */}
         {yTicks.map((tick) => {
           const y = height - paddingBottom - (tick / maxVal) * chartHeight;
           return (
@@ -219,7 +244,6 @@ function SVGLineChart({ data, isDark }) {
                 stroke={isDark ? '#334155' : '#e2e8f0'}
                 strokeDasharray="3 3"
               />
-              {/* Nhãn trục Y */}
               <text
                 x={paddingLeft - 10}
                 y={y + 4}
@@ -233,7 +257,7 @@ function SVGLineChart({ data, isDark }) {
           );
         })}
 
-        {/* Trục X và Trục Y */}
+        {/* Trục X & Y */}
         <line
           x1={paddingLeft}
           y1={height - paddingBottom}
@@ -249,17 +273,17 @@ function SVGLineChart({ data, isDark }) {
           stroke={isDark ? '#475569' : '#94a3b8'}
         />
 
-        {/* Đường nối các điểm (Line) */}
+        {/* Đường nối */}
         {points.length > 1 && (
           <path
             d={pathD}
             fill="none"
-            stroke="#f59e0b" // Màu vàng cam theo mẫu
+            stroke="#f59e0b"
             strokeWidth="2.5"
           />
         )}
 
-        {/* Các điểm tròn trên biểu đồ */}
+        {/* Các điểm tròn */}
         {points.map((pt, index) => (
           <g key={index}>
             <circle
@@ -270,7 +294,6 @@ function SVGLineChart({ data, isDark }) {
               stroke="#f59e0b"
               strokeWidth="2.5"
             />
-            {/* Nhãn mốc thời gian trục X */}
             <text
               x={pt.x}
               y={height - paddingBottom + 20}

@@ -1,128 +1,96 @@
 import React, { useState, useEffect } from 'react';
 
+// Ánh xạ danh mục sang tên file JSON tương ứng
+const CATEGORY_FILE_MAP = {
+  'Học tập': 'hoc-tap',
+  'Công việc': 'cong-viec',
+  'Cá nhân': 'ca-nhan',
+};
+
 export default function Notes({ theme }) {
   const [notes, setNotes] = useState([]);
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
-  const [category, setCategory] = useState('Học tập'); // Danh mục khi tạo mới
-  const [selectedFilter, setSelectedFilter] = useState('Học tập'); // Bộ lọc mặc định
-  const [editingId, setEditingId] = useState(null);
+  const [category, setCategory] = useState('Học tập');
+  const [selectedFilter, setSelectedFilter] = useState('Học tập');
+  const [loading, setLoading] = useState(false);
 
   const isDark = theme === 'dark';
-  // Chỉ còn 3 danh mục: Học tập, Công việc, Cá nhân
   const categories = ['Học tập', 'Công việc', 'Cá nhân'];
 
-  // 1. Tải danh sách ghi chú
-  useEffect(() => {
-    loadNotes();
-  }, []);
+  // 1. Tải dữ liệu từ file JSON tương ứng dưới Backend
+  const fetchNotesByCategory = async (catName) => {
+    setLoading(true);
+    const fileSlug = CATEGORY_FILE_MAP[catName] || 'hoc-tap';
 
-  const loadNotes = async () => {
-    let loadedNotes = [];
-    
     try {
-      const res = await fetch('http://localhost:5000/api/notes');
+      const res = await fetch(`http://localhost:5000/api/notes/${fileSlug}`);
       if (res.ok) {
         const data = await res.json();
-        if (Array.isArray(data)) loadedNotes = data;
+        setNotes(Array.isArray(data) ? data : []);
+      } else {
+        setNotes([]);
       }
-    } catch {}
-
-    if (loadedNotes.length === 0) {
-      try {
-        const local = localStorage.getItem('notes');
-        if (local) {
-          const parsed = JSON.parse(local);
-          if (Array.isArray(parsed)) loadedNotes = parsed;
-        }
-      } catch {}
+    } catch (err) {
+      console.warn(`Lỗi kết nối Backend khi tải file ${fileSlug}.json:`, err);
+      setNotes([]);
+    } finally {
+      setLoading(false);
     }
-
-    setNotes(loadedNotes);
   };
 
-  // 2. Thêm hoặc Sửa ghi chú
-  const handleSaveNote = (e) => {
+  // Tự động tải lại khi đổi danh mục
+  useEffect(() => {
+    fetchNotesByCategory(selectedFilter);
+  }, [selectedFilter]);
+
+  // 2. Lưu ghi chú vào đúng file JSON tương ứng
+  const handleSaveNote = async (e) => {
     e.preventDefault();
     if (!title.trim() && !content.trim()) return;
 
-    let updatedNotes = [];
+    const fileSlug = CATEGORY_FILE_MAP[category] || 'hoc-tap';
+    const newNote = {
+      id: Date.now(),
+      title: title.trim(),
+      content: content.trim(),
+      category: category,
+      createdAt: new Date().toISOString(),
+    };
 
-    if (editingId) {
-      updatedNotes = notes.map((n) =>
-        n.id === editingId ? { ...n, title, content, category } : n
-      );
-      setEditingId(null);
-    } else {
-      const newNote = {
-        id: Date.now(),
-        title: title.trim(),
-        content: content.trim(),
-        category: category,
-        createdAt: new Date().toISOString(),
-      };
-      updatedNotes = [newNote, ...notes];
+    try {
+      await fetch(`http://localhost:5000/api/notes/${fileSlug}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newNote),
+      });
+
+      setTitle('');
+      setContent('');
+
+      // Nếu tạo ghi chú thuộc danh mục đang mở thì tải lại danh sách
+      if (category === selectedFilter) {
+        fetchNotesByCategory(selectedFilter);
+      } else {
+        setSelectedFilter(category); // Tự chuyển sang tab vừa tạo
+      }
+
+      window.dispatchEvent(new Event('notesChanged'));
+    } catch (err) {
+      console.error('Lỗi khi ghi file:', err);
     }
-
-    setNotes(updatedNotes);
-    localStorage.setItem('notes', JSON.stringify(updatedNotes));
-
-    setTitle('');
-    setContent('');
-
-    // Bắn sự kiện cập nhật số lượng cho trang Thống kê
-    window.dispatchEvent(new Event('notesChanged'));
   };
-
-  // 3. Xóa ghi chú
-  const handleDelete = (id) => {
-    const updatedNotes = notes.filter((n) => n.id !== id);
-    setNotes(updatedNotes);
-    localStorage.setItem('notes', JSON.stringify(updatedNotes));
-
-    window.dispatchEvent(new Event('notesChanged'));
-  };
-
-  // 4. Sửa ghi chú
-  const handleStartEdit = (note) => {
-    setEditingId(note.id);
-    setTitle(note.title || '');
-    setContent(note.content || '');
-    setCategory(note.category || 'Học tập');
-  };
-
-  // Định dạng ngày giờ
-  const formatTime = (isoString) => {
-    if (!isoString) return '';
-    const date = new Date(isoString);
-    if (isNaN(date.getTime())) return isoString;
-
-    const hours = String(date.getHours()).padStart(2, '0');
-    const minutes = String(date.getMinutes()).padStart(2, '0');
-    const seconds = String(date.getSeconds()).padStart(2, '0');
-    const day = date.getDate();
-    const month = date.getMonth() + 1;
-    const year = date.getFullYear();
-
-    return `${hours}:${minutes}:${seconds} ${day}/${month}/${year}`;
-  };
-
-  // Lọc ghi chú chính xác theo danh mục được chọn
-  const filteredNotes = notes.filter(
-    (n) => (n.category || 'Học tập') === selectedFilter
-  );
 
   return (
     <div style={{ maxWidth: '800px', margin: '0 auto', fontFamily: 'sans-serif' }}>
       
-      {/* KHỐI DANH SÁCH GHI CHÚ & BỘ LỌC DANH MỤC */}
+      {/* NÚT LỌC CÁC DANH MỤC */}
       <div style={{
         backgroundColor: isDark ? '#1e293b' : '#FAF9F6',
         padding: '20px',
         borderRadius: '16px',
         border: isDark ? '1px solid #334155' : '1px solid #e2e8f0',
         marginBottom: '20px',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.02)'
       }}>
         <h2 style={{
           margin: '0 0 16px 0',
@@ -133,7 +101,6 @@ export default function Notes({ theme }) {
           Danh sách ghi chú
         </h2>
 
-        {/* Nút lọc danh mục (Chỉ gồm Học tập, Công việc, Cá nhân) */}
         <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
           {categories.map((cat) => {
             const isActive = selectedFilter === cat;
@@ -147,12 +114,8 @@ export default function Notes({ theme }) {
                   fontWeight: '600',
                   fontSize: '14px',
                   border: isActive ? 'none' : (isDark ? '1px solid #475569' : '1px solid #e2e8f0'),
-                  backgroundColor: isActive
-                    ? '#f59e0b'
-                    : (isDark ? '#334155' : '#ffffff'),
-                  color: isActive
-                    ? '#ffffff'
-                    : (isDark ? '#cbd5e1' : '#475569'),
+                  backgroundColor: isActive ? '#f59e0b' : (isDark ? '#334155' : '#ffffff'),
+                  color: isActive ? '#ffffff' : (isDark ? '#cbd5e1' : '#475569'),
                   cursor: 'pointer',
                   transition: 'all 0.2s ease',
                   boxShadow: isActive ? '0 2px 6px rgba(245, 158, 11, 0.3)' : 'none'
@@ -165,7 +128,7 @@ export default function Notes({ theme }) {
         </div>
       </div>
 
-      {/* KHUNG TẠO THÊM / SỬA GHI CHÚ */}
+      {/* FORM NẬP GHI CHÚ */}
       <form onSubmit={handleSaveNote} style={{
         backgroundColor: isDark ? '#1e293b' : '#ffffff',
         padding: '16px',
@@ -246,12 +209,16 @@ export default function Notes({ theme }) {
             cursor: 'pointer'
           }}
         >
-          {editingId ? 'Cập nhật' : 'Tạo mới'}
+          Tạo mới
         </button>
       </form>
 
-      {/* HIỂN THỊ DANH SÁCH THẺ GHI CHÚ LỌC THEO DANH MỤC */}
-      {filteredNotes.length === 0 ? (
+      {/* DANH SÁCH GHI CHÚ ĐƯỢC TẢI TỪ FILE JSON */}
+      {loading ? (
+        <div style={{ textAlign: 'center', padding: '20px', color: '#f59e0b' }}>
+          Đang đọc dữ liệu từ file {CATEGORY_FILE_MAP[selectedFilter]}.json...
+        </div>
+      ) : notes.length === 0 ? (
         <div style={{
           textAlign: 'center',
           padding: '40px',
@@ -260,7 +227,7 @@ export default function Notes({ theme }) {
           borderRadius: '12px',
           border: isDark ? '1px solid #334155' : '1px solid #e2e8f0'
         }}>
-          Chưa có ghi chú nào thuộc danh mục <strong>"{selectedFilter}"</strong>.
+          Chưa có ghi chú nào trong file <strong>"{CATEGORY_FILE_MAP[selectedFilter]}.json"</strong>.
         </div>
       ) : (
         <div style={{
@@ -268,7 +235,7 @@ export default function Notes({ theme }) {
           gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
           gap: '16px'
         }}>
-          {filteredNotes.map((note) => (
+          {notes.map((note) => (
             <div
               key={note.id || Math.random()}
               style={{
@@ -278,61 +245,25 @@ export default function Notes({ theme }) {
                 border: isDark ? '1px solid #334155' : '1px solid #e2e8f0',
               }}
             >
-              <div
-                style={{
-                  backgroundColor: isDark ? '#1e293b' : '#ffffff',
-                  borderRadius: '12px',
-                  padding: '16px',
-                  border: isDark ? '1px solid #334155' : '1px solid #f1f5f9',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '8px',
-                  height: '100%',
-                  boxSizing: 'border-box'
-                }}
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <h3 style={{
-                    margin: 0,
-                    fontSize: '16px',
-                    fontWeight: '700',
-                    color: isDark ? '#f8fafc' : '#0f172a'
-                  }}>
-                    {note.title || 'Chưa có tiêu đề'}
-                  </h3>
-                  
-                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                    <button
-                      onClick={() => handleStartEdit(note)}
-                      title="Chỉnh sửa"
-                      style={{
-                        background: 'none',
-                        border: 'none',
-                        cursor: 'pointer',
-                        fontSize: '15px',
-                        opacity: 0.8,
-                        padding: '2px'
-                      }}
-                    >
-                      ✏️
-                    </button>
-
-                    <button
-                      onClick={() => handleDelete(note.id)}
-                      title="Xóa"
-                      style={{
-                        background: 'none',
-                        border: 'none',
-                        cursor: 'pointer',
-                        fontSize: '15px',
-                        opacity: 0.8,
-                        padding: '2px'
-                      }}
-                    >
-                      🗑️
-                    </button>
-                  </div>
-                </div>
+              <div style={{
+                backgroundColor: isDark ? '#1e293b' : '#ffffff',
+                borderRadius: '12px',
+                padding: '16px',
+                border: isDark ? '1px solid #334155' : '1px solid #f1f5f9',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '8px',
+                height: '100%',
+                boxSizing: 'border-box'
+              }}>
+                <h3 style={{
+                  margin: 0,
+                  fontSize: '16px',
+                  fontWeight: '700',
+                  color: isDark ? '#f8fafc' : '#0f172a'
+                }}>
+                  {note.title || 'Chưa có tiêu đề'}
+                </h3>
 
                 <p style={{
                   margin: '4px 0 12px 0',
@@ -346,12 +277,12 @@ export default function Notes({ theme }) {
                 <div style={{
                   marginTop: 'auto',
                   display: 'flex',
-                  justifyContent: 'space-between',
+                  justify: 'space-between',
                   alignItems: 'center',
                   fontSize: '12px',
                   color: isDark ? '#64748b' : '#94a3b8'
                 }}>
-                  <span>{formatTime(note.createdAt)}</span>
+                  <span>{note.createdAt ? new Date(note.createdAt).toLocaleDateString('vi-VN') : ''}</span>
                   <span style={{
                     backgroundColor: isDark ? '#334155' : '#f1f5f9',
                     padding: '2px 8px',
@@ -360,7 +291,7 @@ export default function Notes({ theme }) {
                     fontWeight: '600',
                     color: isDark ? '#38bdf8' : '#0284c7'
                   }}>
-                    {note.category || 'Học tập'}
+                    {selectedFilter}
                   </span>
                 </div>
               </div>
