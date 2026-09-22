@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import Notes from './Notes';
 import PrivateNotes from './PrivateNotes';
 import Settings from './Settings';
@@ -30,7 +30,9 @@ function App() {
       try {
         const parsed = JSON.parse(savedProfile);
         applyProfile(parsed);
-      } catch (e) {}
+      } catch {
+        // Ignore malformed profile data and continue with defaults.
+      }
     }
 
     fetch('http://localhost:5000/api/profile')

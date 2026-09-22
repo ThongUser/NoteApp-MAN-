@@ -1,1 +1,26 @@
-[]
+[
+  {
+    "id": "1790096000098",
+    "title": "tui là học tập kín đó nha",
+    "content": "kkk",
+    "category": "Học tập",
+    "createdAt": "2026-09-22T16:53:20.098Z",
+    "updatedAt": "2026-09-22T16:53:20.098Z"
+  },
+  {
+    "id": "1790096025880",
+    "title": "tui là công việc kín nè",
+    "content": "kkkk",
+    "category": "Công việc",
+    "createdAt": "2026-09-22T16:53:45.880Z",
+    "updatedAt": "2026-09-22T16:53:45.880Z"
+  },
+  {
+    "id": "1790096035098",
+    "title": "tui là cá nhân kín đó nha",
+    "content": "kkk",
+    "category": "Cá nhân",
+    "createdAt": "2026-09-22T16:53:55.098Z",
+    "updatedAt": "2026-09-22T16:53:55.098Z"
+  }
+]

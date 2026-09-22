@@ -78,6 +78,7 @@ app.post('/api/notes/:topic', (req, res) => {
       id: Date.now().toString(),
       title: req.body.title || "Không tiêu đề",
       content: req.body.content || "",
+      category: req.body.category || req.params.topic,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     };
@@ -98,6 +99,7 @@ app.put('/api/notes/:topic/:id', (req, res) => {
     if (index !== -1) {
       notes[index].title = req.body.title;
       notes[index].content = req.body.content;
+      notes[index].category = req.body.category || req.params.topic;
       notes[index].updatedAt = new Date().toISOString();
       fs.writeFileSync(filePath, JSON.stringify(notes, null, 2), 'utf8');
       return res.json({ success: true, message: "Đã sửa thành công" });
@@ -172,6 +174,7 @@ app.post('/api/private/notes', (req, res) => {
       id: Date.now().toString(),
       title: req.body.title || "Lưu bút mật",
       content: req.body.content || "",
+      category: req.body.category || "Học tập",
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     };
@@ -180,6 +183,47 @@ app.post('/api/private/notes', (req, res) => {
     res.json({ success: true, note: newNote });
   } catch (error) {
     res.status(500).json({ message: "Lỗi thêm ghi chú kín" });
+  }
+});
+
+// API Sửa ghi chú riêng tư
+app.put('/api/private/notes/:id', (req, res) => {
+  try {
+    const notes = safeReadJSON(privateNotesFile, []);
+    const index = notes.findIndex((note) => String(note.id) === String(req.params.id));
+
+    if (index === -1) {
+      return res.status(404).json({ message: "Không tìm thấy ghi chú riêng tư" });
+    }
+
+    notes[index] = {
+      ...notes[index],
+      title: req.body.title || "Lưu bút mật",
+      content: req.body.content || "",
+      category: req.body.category || notes[index].category || "Học tập",
+      updatedAt: new Date().toISOString()
+    };
+    fs.writeFileSync(privateNotesFile, JSON.stringify(notes, null, 2), 'utf8');
+    res.json({ success: true, note: notes[index] });
+  } catch (error) {
+    res.status(500).json({ message: "Lỗi sửa ghi chú kín" });
+  }
+});
+
+// API Xóa ghi chú riêng tư
+app.delete('/api/private/notes/:id', (req, res) => {
+  try {
+    const notes = safeReadJSON(privateNotesFile, []);
+    const nextNotes = notes.filter((note) => String(note.id) !== String(req.params.id));
+
+    if (nextNotes.length === notes.length) {
+      return res.status(404).json({ message: "Không tìm thấy ghi chú riêng tư" });
+    }
+
+    fs.writeFileSync(privateNotesFile, JSON.stringify(nextNotes, null, 2), 'utf8');
+    res.json({ success: true, message: "Đã xóa ghi chú kín" });
+  } catch (error) {
+    res.status(500).json({ message: "Lỗi xóa ghi chú kín" });
   }
 });
 

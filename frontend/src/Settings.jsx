@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 
 function Settings({ currentTheme }) {
   const [name, setName] = useState('binh');
   const [selectedTheme, setSelectedTheme] = useState('light');
   const [password, setPassword] = useState('123456');
   const [showPassword, setShowPassword] = useState(false);
+  const [saveMessage, setSaveMessage] = useState('');
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -21,7 +22,7 @@ function Settings({ currentTheme }) {
           theme: profile.theme || 'light',
           password: profile.password || ''
         }));
-      } catch (e) {
+      } catch {
         const savedProfile = localStorage.getItem('user_profile');
         if (savedProfile) {
           try {
@@ -29,7 +30,9 @@ function Settings({ currentTheme }) {
             if (parsed.displayName || parsed.name) setName(parsed.displayName || parsed.name);
             if (parsed.theme) setSelectedTheme(parsed.theme);
             if (parsed.password) setPassword(parsed.password);
-          } catch (err) {}
+          } catch {
+            // Ignore malformed local profile data and keep defaults.
+          }
         }
       }
     };
@@ -44,21 +47,21 @@ function Settings({ currentTheme }) {
       password
     };
 
-    localStorage.setItem('user_profile', JSON.stringify(profileData));
-
     try {
-      await fetch('http://localhost:5000/api/profile', {
+      const response = await fetch('http://localhost:5000/api/profile', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(profileData)
       });
-    } catch (err) {
-      console.log("Không thể kết nối Server:", err);
+      if (!response.ok) throw new Error('Không thể lưu thông tin.');
+      localStorage.setItem('user_profile', JSON.stringify(profileData));
+      setSaveMessage('Đã lưu thông tin!');
+    } catch (error) {
+      setSaveMessage(error.message || 'Không thể lưu thông tin.');
+      return;
     }
 
     window.dispatchEvent(new CustomEvent('profileUpdated', { detail: profileData }));
-
-    alert("Đã lưu thay đổi cài đặt!");
   };
 
   // Dùng currentTheme từ App để giữ màu sắc khung Settings không bị lệch màu trước khi lưu
@@ -158,20 +161,27 @@ function Settings({ currentTheme }) {
         </div>
       </div>
 
-      <button 
-        onClick={handleSave}
-        style={{
-          padding: '10px 20px',
-          backgroundColor: '#0284c7',
-          color: '#ffffff',
-          border: 'none',
-          borderRadius: '6px',
-          fontWeight: '600',
-          cursor: 'pointer'
-        }}
-      >
-        Lưu thay đổi
-      </button>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+        <button 
+          onClick={handleSave}
+          style={{
+            padding: '10px 20px',
+            backgroundColor: '#0284c7',
+            color: '#ffffff',
+            border: 'none',
+            borderRadius: '6px',
+            fontWeight: '600',
+            cursor: 'pointer'
+          }}
+        >
+          Lưu thông tin
+        </button>
+        {saveMessage && (
+          <span style={{ color: '#16a34a', fontSize: '14px', fontWeight: '600' }}>
+            {saveMessage}
+          </span>
+        )}
+      </div>
     </div>
   );
 }

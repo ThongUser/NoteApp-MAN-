@@ -1,22 +1,22 @@
 [
   {
     "id": "1789983864664",
-    "title": "Ghi chú học tập số 1",
-    "content": "Nội dung ghi chú số 1",
+    "title": "ASP.NET Core",
+    "content": "Ôn tập kiến thức về ASP.NET Core, bao gồm các chủ đề như Middleware, Dependency Injection, Routing, và Entity Framework Core.",
     "createdAt": "2026-09-21T09:44:24.664Z",
     "updatedAt": "2026-09-21T09:44:24.664Z"
   },
   {
     "id": "1789983905366",
-    "title": "Ghi chú học tập số 1",
-    "content": "Nội dung ghi chú số 1",
+    "title": "Laravel",
+    "content": "Ôn tập kiến thức về Laravel, bao gồm các chủ đề như Routing, Middleware, Eloquent ORM, và Blade Template.",
     "createdAt": "2026-09-21T09:45:05.366Z",
     "updatedAt": "2026-09-21T09:45:05.366Z"
   },
   {
     "id": "1789983968470",
-    "title": "Ghi chú học tập số 1",
-    "content": "Nội dung ghi chú số 2",
+    "title": "Frontend Frameworks",
+    "content": "Ôn tập kiến thức về các framework frontend như React, Vue.js, và Angular.",
     "createdAt": "2026-09-21T09:46:08.470Z",
     "updatedAt": "2026-09-21T09:46:08.470Z"
   }

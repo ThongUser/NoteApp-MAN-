@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
+
+const PUBLIC_NOTE_TOPICS = ['hoc-tap', 'cong-viec', 'ca-nhan'];
 
 export default function Stats({ theme }) {
   const [notes, setNotes] = useState([]);
@@ -6,31 +8,36 @@ export default function Stats({ theme }) {
 
   const isDark = theme === 'dark';
 
-  // 1. Tải dữ liệu ghi chú từ LocalStorage
-  const updateStats = () => {
+  // 1. Tải toàn bộ ghi chú công khai từ các danh mục trên backend
+  const updateStats = async () => {
     try {
-      const localData = localStorage.getItem('notes');
-      if (localData) {
-        const parsed = JSON.parse(localData);
-        if (Array.isArray(parsed)) {
-          setNotes(parsed);
-          return;
-        }
+      const responses = await Promise.all(
+        PUBLIC_NOTE_TOPICS.map((topic) => fetch(`http://localhost:5000/api/notes/${topic}`))
+      );
+
+      if (responses.some((response) => !response.ok)) {
+        throw new Error('Không thể tải danh sách ghi chú công khai');
       }
+
+      const notesByTopic = await Promise.all(responses.map((response) => response.json()));
+      setNotes(notesByTopic.flat().filter((note) => note && typeof note === 'object'));
     } catch (e) {
-      console.error('Lỗi khi đọc dữ liệu:', e);
+      console.error('Lỗi khi tải dữ liệu thống kê:', e);
+      setNotes([]);
     }
-    setNotes([]);
   };
 
   useEffect(() => {
-    updateStats();
+    const initialLoad = window.setTimeout(() => {
+      updateStats();
+    }, 0);
 
     // Lắng nghe sự kiện cập nhật real-time
     window.addEventListener('notesChanged', updateStats);
     window.addEventListener('storage', updateStats);
 
     return () => {
+      window.clearTimeout(initialLoad);
       window.removeEventListener('notesChanged', updateStats);
       window.removeEventListener('storage', updateStats);
     };
@@ -199,9 +206,9 @@ export default function Stats({ theme }) {
 // COMPONENT VẼ BIỂU ĐỒ ĐƯỜNG SVG
 function SVGLineChart({ data, isDark }) {
   const width = 600;
-  const height = 240;
+  const height = 280;
   const paddingLeft = 40;
-  const paddingBottom = 40;
+  const paddingBottom = 64;
   const paddingTop = 20;
   const paddingRight = 20;
 
@@ -296,10 +303,16 @@ function SVGLineChart({ data, isDark }) {
             />
             <text
               x={pt.x}
-              y={height - paddingBottom + 20}
+              y={height - paddingBottom + 24}
               fill={isDark ? '#cbd5e1' : '#64748b'}
               fontSize="11"
-              textAnchor="middle"
+              textAnchor={
+                index === 0
+                  ? 'start'
+                  : index === points.length - 1
+                    ? 'end'
+                    : 'middle'
+              }
             >
               {pt.label}
             </text>

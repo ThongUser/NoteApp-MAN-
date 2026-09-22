@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 
 const CATEGORY_FILE_MAP = {
   'Học tập': 'hoc-tap',
@@ -55,7 +55,10 @@ export default function Notes({ theme }) {
   };
 
   useEffect(() => {
-    fetchNotesByCategory(selectedFilter);
+    const initialLoad = window.setTimeout(() => {
+      fetchNotesByCategory(selectedFilter);
+    }, 0);
+    return () => window.clearTimeout(initialLoad);
   }, [selectedFilter]);
 
   // Xử lý Thêm mới hoặc Cập nhật (Sửa)
@@ -63,19 +66,21 @@ export default function Notes({ theme }) {
     e.preventDefault();
     if (!title.trim() && !content.trim()) return;
 
-    const fileSlug = CATEGORY_FILE_MAP[category] || 'hoc-tap';
+    const noteCategory = editingId ? category : selectedFilter;
+    const fileSlug = CATEGORY_FILE_MAP[noteCategory] || 'hoc-tap';
 
     if (editingId) {
       try {
-        await fetch(`http://localhost:5000/api/notes/${fileSlug}/${editingId}`, {
+        const response = await fetch(`http://localhost:5000/api/notes/${fileSlug}/${editingId}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             title: title.trim(),
             content: content.trim(),
-            category: category,
+            category: noteCategory,
           }),
         });
+        if (!response.ok) throw new Error('Không thể cập nhật ghi chú.');
         resetForm();
         fetchNotesByCategory(selectedFilter);
         window.dispatchEvent(new Event('notesChanged'));
@@ -84,22 +89,22 @@ export default function Notes({ theme }) {
       }
     } else {
       const newNote = {
-        id: Date.now(),
         title: title.trim(),
         content: content.trim(),
-        category: category,
+        category: noteCategory,
         createdAt: new Date().toISOString(),
       };
 
       try {
-        await fetch(`http://localhost:5000/api/notes/${fileSlug}`, {
+        const response = await fetch(`http://localhost:5000/api/notes/${fileSlug}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(newNote),
         });
+        if (!response.ok) throw new Error('Không thể tạo ghi chú.');
 
         resetForm();
-        if (category === selectedFilter) {
+        if (noteCategory === selectedFilter) {
           fetchNotesByCategory(selectedFilter);
         } else {
           setSelectedFilter(category);
@@ -208,7 +213,7 @@ export default function Notes({ theme }) {
         flexDirection: 'column',
         gap: '12px'
       }}>
-        <div style={{ display: 'flex', gap: '10px' }}>
+        <div style={{ display: 'flex', gap: '10px', minWidth: 0 }}>
           <input
             type="text"
             placeholder="Tiêu đề ghi chú..."
@@ -216,6 +221,8 @@ export default function Notes({ theme }) {
             onChange={(e) => setTitle(e.target.value)}
             style={{
               flex: 1,
+              minWidth: 0,
+              width: '100%',
               padding: '10px 12px',
               borderRadius: '8px',
               border: isDark ? '1px solid #475569' : '1px solid #cbd5e1',
@@ -227,7 +234,7 @@ export default function Notes({ theme }) {
             }}
           />
 
-          <select
+          {/* <select
             value={category}
             onChange={(e) => setCategory(e.target.value)}
             disabled={editingId !== null}
@@ -246,7 +253,7 @@ export default function Notes({ theme }) {
             <option value="Học tập">Học tập</option>
             <option value="Công việc">Công việc</option>
             <option value="Cá nhân">Cá nhân</option>
-          </select>
+          </select> */}
         </div>
 
         <textarea
@@ -255,6 +262,12 @@ export default function Notes({ theme }) {
           value={content}
           onChange={(e) => setContent(e.target.value)}
           style={{
+            width: '100%',
+            maxWidth: '100%',
+            minWidth: 0,
+            boxSizing: 'border-box',
+            display: 'block',
+            maxHeight: '240px',
             padding: '10px 12px',
             borderRadius: '8px',
             border: isDark ? '1px solid #475569' : '1px solid #cbd5e1',
@@ -262,6 +275,8 @@ export default function Notes({ theme }) {
             color: isDark ? '#ffffff' : '#000000',
             fontSize: '14px',
             resize: 'vertical',
+            overflowY: 'auto',
+            overflowWrap: 'anywhere',
             outline: 'none'
           }}
         />
@@ -324,9 +339,9 @@ export default function Notes({ theme }) {
           gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
           gap: '16px'
         }}>
-          {notes.map((note) => (
+          {notes.map((note, index) => (
             <div
-              key={note.id || Math.random()}
+              key={note.id || `${note.title}-${index}`}
               style={{
                 backgroundColor: isDark ? '#1e293b' : '#ffffff',
                 borderRadius: '16px',
@@ -335,7 +350,8 @@ export default function Notes({ theme }) {
                 display: 'flex',
                 flexDirection: 'column',
                 justify: 'space-between',
-                boxShadow: '0 2px 6px rgba(0,0,0,0.02)'
+                boxShadow: '0 2px 6px rgba(0,0,0,0.02)',
+                minWidth: 0
               }}
             >
               <div>
@@ -344,6 +360,8 @@ export default function Notes({ theme }) {
                   display: 'flex',
                   justify: 'space-between',
                   alignItems: 'center',
+                  width: '100%',
+                  gap: '10px',
                   marginBottom: '12px'
                 }}>
                   <h3 style={{
@@ -351,13 +369,16 @@ export default function Notes({ theme }) {
                     fontSize: '18px',
                     fontWeight: '700',
                     color: isDark ? '#f8fafc' : '#1e293b',
-                    paddingRight: '10px'
+                    paddingRight: '10px',
+                    flex: 1,
+                    minWidth: 0,
+                    overflowWrap: 'anywhere'
                   }}>
                     {note.title || 'Chưa có tiêu đề'}
                   </h3>
 
                   {/* CỤM ICON (XEM 👁️ / SỬA ✏️ / XÓA 🗑️) */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0, marginLeft: 'auto' }}>
                     {/* Icon Mắt (Xem) */}
                     <button
                       onClick={() => setViewingNote(note)}
@@ -426,7 +447,8 @@ export default function Notes({ theme }) {
                   fontSize: '15px',
                   color: isDark ? '#cbd5e1' : '#475569',
                   lineHeight: '1.5',
-                  whiteSpace: 'pre-wrap'
+                  whiteSpace: 'pre-wrap',
+                  overflowWrap: 'anywhere'
                 }}>
                   {note.content}
                 </p>
@@ -467,12 +489,14 @@ export default function Notes({ theme }) {
             borderRadius: '16px',
             maxWidth: '500px',
             width: '100%',
+            maxHeight: '90vh',
+            overflowY: 'auto',
             color: isDark ? '#f8fafc' : '#0f172a',
             border: isDark ? '1px solid #334155' : '1px solid #e2e8f0',
             boxShadow: '0 10px 25px rgba(0,0,0,0.2)'
           }}>
-            <h3 style={{ marginTop: 0, fontSize: '20px' }}>{viewingNote.title}</h3>
-            <p style={{ whiteSpace: 'pre-wrap', color: isDark ? '#cbd5e1' : '#475569', lineHeight: '1.6' }}>
+            <h3 style={{ marginTop: 0, fontSize: '20px', overflowWrap: 'anywhere' }}>{viewingNote.title}</h3>
+            <p style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', color: isDark ? '#cbd5e1' : '#475569', lineHeight: '1.6' }}>
               {viewingNote.content}
             </p>
             <div style={{ fontSize: '13px', color: '#94a3b8', marginTop: '16px' }}>
