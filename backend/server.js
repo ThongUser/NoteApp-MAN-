@@ -155,6 +155,15 @@ app.get('/api/private/notes', (req, res) => {
   }
 });
 
+app.get('/api/private-notes', (req, res) => {
+  try {
+    const notes = safeReadJSON(privateNotesFile, []);
+    res.json(notes);
+  } catch (error) {
+    res.status(500).json({ message: "Lỗi đọc ghi chú riêng tư" });
+  }
+});
+
 // API Thêm Ghi chú riêng tư
 app.post('/api/private/notes', (req, res) => {
   try {
