@@ -2,6 +2,18 @@ import React, { useState, useEffect } from 'react';
 import Notes from './Notes';
 import PrivateNotes from './PrivateNotes';
 import Settings from './Settings';
+import Stats from './Stats';
+import { useAppContext } from './AppContext';
+
+function AddButton() {
+  const { addNote } = useAppContext();
+
+  const handleCreate = () => {
+    addNote({ title: 'Ghi chú mới' }); // Tự động thêm ngày tạo và lưu vào state
+  };
+
+  return <button onClick={handleCreate}>+ Tạo Tab mới</button>;
+}
 
 function App() {
   const [activeTab, setActiveTab] = useState('regular');
@@ -16,7 +28,7 @@ function App() {
         const parsed = JSON.parse(savedProfile);
         if (parsed.name) setDisplayName(parsed.name);
         if (parsed.theme) setTheme(parsed.theme);
-      } catch (e) {}
+      } catch (e) { }
     }
 
     fetch('http://localhost:5000/api/profile')
@@ -27,7 +39,7 @@ function App() {
           if (data.theme) setTheme(data.theme);
         }
       })
-      .catch(() => {});
+      .catch(() => { });
 
     // Lắng nghe sự kiện cập nhật giao diện sau khi bấm nút Lưu thay đổi
     const handleProfileUpdate = (event) => {
@@ -44,6 +56,7 @@ function App() {
   const isDark = theme === 'dark';
 
   return (
+    
     <div style={{
       display: 'flex',
       minHeight: '100vh',
@@ -52,7 +65,7 @@ function App() {
       color: isDark ? '#f8fafc' : '#0f172a',
       transition: 'all 0.3s ease'
     }}>
-      
+
       {/* MENU BÊN TRÁI */}
       <div style={{
         width: '220px',
@@ -81,7 +94,7 @@ function App() {
         </h2>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-          <button 
+          <button
             onClick={() => setActiveTab('regular')}
             style={{
               padding: '10px 16px',
@@ -97,7 +110,7 @@ function App() {
             Notes thường
           </button>
 
-          <button 
+          <button
             onClick={() => setActiveTab('private')}
             style={{
               padding: '10px 16px',
@@ -113,7 +126,7 @@ function App() {
             Notes riêng tư
           </button>
 
-          <button 
+          <button
             onClick={() => setActiveTab('settings')}
             style={{
               padding: '10px 16px',
