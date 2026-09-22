@@ -6,10 +6,10 @@ import Settings from './Settings';
 function App() {
   const [activeTab, setActiveTab] = useState('regular');
   const [displayName, setDisplayName] = useState('Bạn');
-  const [theme, setTheme] = useState('light'); // 'light' hoặc 'dark'
+  const [theme, setTheme] = useState('light');
 
-  // Đọc thông tin cài đặt (Tên & Giao diện)
-  const fetchProfile = () => {
+  useEffect(() => {
+    // Lấy cài đặt ban đầu
     const savedProfile = localStorage.getItem('user_profile');
     if (savedProfile) {
       try {
@@ -28,13 +28,17 @@ function App() {
         }
       })
       .catch(() => {});
-  };
 
-  useEffect(() => {
-    fetchProfile();
-    const handleStorageChange = () => fetchProfile();
-    window.addEventListener('profileUpdated', handleStorageChange);
-    return () => window.removeEventListener('profileUpdated', handleStorageChange);
+    // Lắng nghe sự kiện cập nhật giao diện sau khi bấm nút Lưu thay đổi
+    const handleProfileUpdate = (event) => {
+      if (event.detail) {
+        if (event.detail.name) setDisplayName(event.detail.name);
+        if (event.detail.theme) setTheme(event.detail.theme);
+      }
+    };
+
+    window.addEventListener('profileUpdated', handleProfileUpdate);
+    return () => window.removeEventListener('profileUpdated', handleProfileUpdate);
   }, []);
 
   const isDark = theme === 'dark';
@@ -49,15 +53,13 @@ function App() {
       transition: 'all 0.3s ease'
     }}>
       
-      {/* THANH MENU BÊN TRÁI */}
+      {/* MENU BÊN TRÁI */}
       <div style={{
         width: '220px',
         backgroundColor: isDark ? '#1e293b' : '#e0f2fe',
         padding: '20px',
         borderRight: isDark ? '1px solid #334155' : '1px solid #bae6fd'
       }}>
-        
-        {/* DÒNG XIN CHÀO */}
         <div style={{
           marginBottom: '16px',
           fontSize: '14px',
@@ -66,7 +68,6 @@ function App() {
           padding: '10px 12px',
           borderRadius: '8px',
           border: isDark ? '1px solid #475569' : '1px solid #bae6fd',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
           display: 'flex',
           alignItems: 'center',
           gap: '6px'
@@ -75,12 +76,10 @@ function App() {
           <span>Xin chào, <strong style={{ color: isDark ? '#38bdf8' : '#0284c7' }}>{displayName}</strong>!</span>
         </div>
 
-        {/* TIÊU ĐỀ MENU */}
         <h2 style={{ margin: '0 0 16px 0', color: isDark ? '#38bdf8' : '#0369a1', fontSize: '20px', fontWeight: '700' }}>
           Menu
         </h2>
 
-        {/* CÁC NÚT CHUYỂN TRANG */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           <button 
             onClick={() => setActiveTab('regular')}
@@ -136,7 +135,8 @@ function App() {
       <div style={{ flex: 1, padding: '24px', backgroundColor: isDark ? '#0f172a' : '#f8fafc' }}>
         {activeTab === 'regular' && <Notes theme={theme} />}
         {activeTab === 'private' && <PrivateNotes theme={theme} />}
-        {activeTab === 'settings' && <Settings theme={theme} />}
+        {/* Truyền theme hiện tại sang Settings */}
+        {activeTab === 'settings' && <Settings currentTheme={theme} />}
       </div>
 
     </div>

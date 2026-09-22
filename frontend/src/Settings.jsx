@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 
-function Settings() {
+function Settings({ currentTheme }) {
   const [name, setName] = useState('binh');
-  const [theme, setTheme] = useState('light');
+  const [selectedTheme, setSelectedTheme] = useState('light');
   const [password, setPassword] = useState('123456');
   const [showPassword, setShowPassword] = useState(false);
 
@@ -12,28 +12,37 @@ function Settings() {
       try {
         const parsed = JSON.parse(savedProfile);
         if (parsed.name) setName(parsed.name);
-        if (parsed.theme) setTheme(parsed.theme);
+        if (parsed.theme) setSelectedTheme(parsed.theme);
         if (parsed.password) setPassword(parsed.password);
       } catch (e) {}
     }
   }, []);
 
-  const handleSave = () => {
-    const profileData = { name, theme, password };
+  const handleSave = async () => {
+    const profileData = { name, theme: selectedTheme, password };
+    
+    // 1. Lưu vào localStorage
     localStorage.setItem('user_profile', JSON.stringify(profileData));
 
-    fetch('http://localhost:5000/api/profile', {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(profileData)
-    }).catch(err => console.log(err));
+    // 2. Lưu API Backend
+    try {
+      await fetch('http://localhost:5000/api/profile', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(profileData)
+      });
+    } catch (err) {
+      console.log("Không thể kết nối Server:", err);
+    }
 
-    // Bắt sự kiện cập nhật giao diện toàn ứng dụng ngay lập tức
-    window.dispatchEvent(new Event('profileUpdated'));
+    // 3. Đổi màu giao diện toàn ứng dụng sau khi đã bấm Lưu thay đổi
+    window.dispatchEvent(new CustomEvent('profileUpdated', { detail: profileData }));
+    
     alert("Đã lưu thay đổi cài đặt!");
   };
 
-  const isDark = theme === 'dark';
+  // Dùng currentTheme từ App để giữ màu sắc khung Settings không bị lệch màu trước khi lưu
+  const isDark = currentTheme === 'dark';
 
   return (
     <div style={{
@@ -42,7 +51,8 @@ function Settings() {
       padding: '24px',
       borderRadius: '12px',
       border: isDark ? '1px solid #334155' : '1px solid #e2e8f0',
-      maxWidth: '500px'
+      maxWidth: '500px',
+      transition: 'all 0.3s ease'
     }}>
       <h2 style={{ marginTop: 0, marginBottom: '20px', fontSize: '22px' }}>⚙️ Cài đặt hệ thống</h2>
 
@@ -68,8 +78,8 @@ function Settings() {
       <div style={{ marginBottom: '16px' }}>
         <label style={{ display: 'block', marginBottom: '6px', fontWeight: '600' }}>Giao diện:</label>
         <select 
-          value={theme}
-          onChange={(e) => setTheme(e.target.value)}
+          value={selectedTheme}
+          onChange={(e) => setSelectedTheme(e.target.value)}
           style={{
             padding: '8px 12px',
             borderRadius: '6px',
