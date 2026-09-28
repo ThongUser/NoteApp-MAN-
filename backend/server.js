@@ -238,6 +238,32 @@ app.get('/api/private/notes', (req, res) => {
   }
 });
 
+// Chuyển ghi chú công khai sang danh sách riêng tư
+app.post('/api/notes/:topic/:id/move-private', (req, res) => {
+  const sourceFile = getFilePath(req.params.topic);
+  try {
+    const notes = safeReadJSON(sourceFile, []);
+    const noteIndex = notes.findIndex((note) => note.id === req.params.id);
+    if (noteIndex === -1) {
+      return res.status(404).json({ message: "Không tìm thấy ghi chú" });
+    }
+
+    const privateNotes = safeReadJSON(privateNotesFile, []);
+    const noteToMove = notes[noteIndex];
+    if (privateNotes.some((note) => note.id === noteToMove.id)) {
+      return res.status(409).json({ message: "Ghi chú đã tồn tại trong danh sách riêng tư" });
+    }
+
+    privateNotes.push(noteToMove);
+    const remainingNotes = notes.filter((_, index) => index !== noteIndex);
+    fs.writeFileSync(privateNotesFile, JSON.stringify(privateNotes, null, 2), 'utf8');
+    fs.writeFileSync(sourceFile, JSON.stringify(remainingNotes, null, 2), 'utf8');
+    res.json({ success: true, note: noteToMove });
+  } catch (error) {
+    res.status(500).json({ message: "Lỗi chuyển ghi chú sang riêng tư" });
+  }
+});
+
 // API Thêm Ghi chú riêng tư
 app.post('/api/private/notes', (req, res) => {
   try {
@@ -254,6 +280,43 @@ app.post('/api/private/notes', (req, res) => {
     res.json({ success: true, note: newNote });
   } catch (error) {
     res.status(500).json({ message: "Lỗi thêm ghi chú kín" });
+  }
+});
+
+// Cập nhật ghi chú riêng tư
+app.put('/api/private/notes/:id', (req, res) => {
+  try {
+    const notes = safeReadJSON(privateNotesFile, []);
+    const note = notes.find((item) => item.id === req.params.id);
+    if (!note) {
+      return res.status(404).json({ message: "Không tìm thấy ghi chú riêng tư" });
+    }
+
+    note.title = req.body.title ?? note.title;
+    note.content = req.body.content ?? note.content;
+    if (req.body.category !== undefined) note.category = req.body.category;
+    note.updatedAt = new Date().toISOString();
+    fs.writeFileSync(privateNotesFile, JSON.stringify(notes, null, 2), 'utf8');
+    res.json({ success: true, note });
+  } catch (error) {
+    res.status(500).json({ message: "Lỗi cập nhật ghi chú riêng tư" });
+  }
+});
+
+// Xóa ghi chú riêng tư
+app.delete('/api/private/notes/:id', (req, res) => {
+  try {
+    const notes = safeReadJSON(privateNotesFile, []);
+    const noteIndex = notes.findIndex((note) => note.id === req.params.id);
+    if (noteIndex === -1) {
+      return res.status(404).json({ message: "Không tìm thấy ghi chú riêng tư" });
+    }
+
+    const remainingNotes = notes.filter((_, index) => index !== noteIndex);
+    fs.writeFileSync(privateNotesFile, JSON.stringify(remainingNotes, null, 2), 'utf8');
+    res.json({ success: true, message: "Đã xóa ghi chú riêng tư" });
+  } catch (error) {
+    res.status(500).json({ message: "Lỗi xóa ghi chú riêng tư" });
   }
 });
 

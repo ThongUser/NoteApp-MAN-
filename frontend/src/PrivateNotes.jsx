@@ -15,6 +15,7 @@ function PrivateNotes() {
   const [selectedFilter, setSelectedFilter] = useState('Học tập');
   const [editingId, setEditingId] = useState(null);
   const [viewingNote, setViewingNote] = useState(null);
+  const [deletingNote, setDeletingNote] = useState(null);
   const categories = ['Học tập', 'Công việc', 'Cá nhân'];
 
   // Tải ghi chú riêng tư từ backend sau khi xác thực.
@@ -85,17 +86,16 @@ function PrivateNotes() {
 
   // Xử lý XÓA vĩnh viễn
   const handleDelete = async (id) => {
-    if (window.confirm("Bạn có chắc chắn muốn xóa ghi chú này?")) {
-      try {
-        const response = await fetch(`http://localhost:5000/api/private/notes/${id}`, {
-          method: 'DELETE'
-        });
-        if (!response.ok) throw new Error('Không thể xóa ghi chú riêng tư.');
-        setNotes((currentNotes) => currentNotes.filter((note) => note.id !== id));
-        window.dispatchEvent(new Event('notesChanged'));
-      } catch (error) {
-        setErrorMsg(error.message);
-      }
+    try {
+      const response = await fetch(`http://localhost:5000/api/private/notes/${id}`, {
+        method: 'DELETE'
+      });
+      if (!response.ok) throw new Error('Không thể xóa ghi chú riêng tư.');
+      setNotes((currentNotes) => currentNotes.filter((note) => note.id !== id));
+      setDeletingNote(null);
+      window.dispatchEvent(new Event('notesChanged'));
+    } catch (error) {
+      setErrorMsg(error.message);
     }
   };
 
@@ -453,7 +453,7 @@ function PrivateNotes() {
 
                     <button
                       type="button"
-                      onClick={() => handleDelete(note.id)}
+                      onClick={() => setDeletingNote(note)}
                       title="Xóa ghi chú"
                       aria-label="Xóa ghi chú"
                       style={{
@@ -525,6 +525,68 @@ function PrivateNotes() {
                 }}
               >
                 Đóng
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {deletingNote && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          backgroundColor: 'rgba(15, 23, 42, 0.55)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1001,
+          padding: '20px'
+        }}>
+          <div style={{
+            backgroundColor: '#ffffff',
+            padding: '24px',
+            borderRadius: '16px',
+            maxWidth: '420px',
+            width: '100%',
+            color: '#0f172a',
+            boxShadow: '0 10px 25px rgba(0,0,0,0.2)'
+          }}>
+            <h3 style={{ margin: '0 0 10px', fontSize: '20px' }}>
+              Xác nhận xóa ghi chú
+            </h3>
+            <p style={{ margin: '0', color: '#475569', lineHeight: '1.5', overflowWrap: 'anywhere' }}>
+              Bạn có chắc chắn muốn xóa “{deletingNote.title || 'Chưa có tiêu đề'}”? Hành động này không thể hoàn tác.
+            </p>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '24px' }}>
+              <button
+                type="button"
+                onClick={() => setDeletingNote(null)}
+                style={{
+                  padding: '9px 18px',
+                  backgroundColor: '#e2e8f0',
+                  color: '#475569',
+                  border: 'none',
+                  borderRadius: '8px',
+                  fontWeight: '600',
+                  cursor: 'pointer'
+                }}
+              >
+                Hủy
+              </button>
+              <button
+                type="button"
+                onClick={() => handleDelete(deletingNote.id)}
+                style={{
+                  padding: '9px 18px',
+                  backgroundColor: '#dc2626',
+                  color: '#ffffff',
+                  border: 'none',
+                  borderRadius: '8px',
+                  fontWeight: '600',
+                  cursor: 'pointer'
+                }}
+              >
+                Xóa ghi chú
               </button>
             </div>
           </div>
