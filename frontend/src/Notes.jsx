@@ -15,6 +15,8 @@ export default function Notes({ theme }) {
   const [editingId, setEditingId] = useState(null);
   const [loading, setLoading] = useState(false);
   const [viewingNote, setViewingNote] = useState(null); // Quản lý popup xem chi tiết (khi nhấn icon Mắt)
+  const [noteToMove, setNoteToMove] = useState(null);
+  const [moveError, setMoveError] = useState('');
 
   const isDark = theme === 'dark';
   const categories = ['Học tập', 'Công việc', 'Cá nhân'];
@@ -133,6 +135,36 @@ export default function Notes({ theme }) {
       }
     } catch (err) {
       console.error('Lỗi khi xóa ghi chú:', err);
+    }
+  };
+
+  const handleMoveToPrivate = (note) => {
+    setMoveError('');
+    setNoteToMove(note);
+  };
+
+  const confirmMoveToPrivate = async () => {
+    if (!noteToMove) return;
+
+    const note = noteToMove;
+    const fileSlug = CATEGORY_FILE_MAP[selectedFilter] || 'hoc-tap';
+    try {
+      const response = await fetch(`http://localhost:5000/api/notes/${fileSlug}/${note.id}/move-private`, {
+        method: 'POST',
+      });
+      const contentType = response.headers.get('content-type') || '';
+      const result = contentType.includes('application/json') ? await response.json() : null;
+      if (!response.ok) {
+        throw new Error(result?.message || 'Backend chưa nhận API chuyển ghi chú. Hãy khởi động lại backend rồi thử lại.');
+      }
+      if (!result) throw new Error('Backend trả về phản hồi không hợp lệ.');
+
+      setNotes((currentNotes) => currentNotes.filter((currentNote) => currentNote.id !== note.id));
+      setNoteToMove(null);
+      setMoveError('');
+      window.dispatchEvent(new Event('notesChanged'));
+    } catch (err) {
+      setMoveError(err.message || 'Không thể chuyển ghi chú sang riêng tư.');
     }
   };
 
@@ -399,6 +431,26 @@ export default function Notes({ theme }) {
                       </svg>
                     </button>
 
+                    <button
+                      onClick={() => handleMoveToPrivate(note)}
+                      title="Chuyển sang ghi chú riêng tư"
+                      aria-label="Chuyển sang ghi chú riêng tư"
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        cursor: 'pointer',
+                        padding: '2px',
+                        color: isDark ? '#94a3b8' : '#475569',
+                        display: 'flex',
+                        alignItems: 'center'
+                      }}
+                    >
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <rect x="4" y="11" width="16" height="10" rx="2" />
+                        <path d="M8 11V7a4 4 0 0 1 8 0v4" />
+                      </svg>
+                    </button>
+
                     {/* Icon Cây bút (Sửa) */}
                     <button
                       onClick={() => handleStartEdit(note)}
@@ -447,7 +499,10 @@ export default function Notes({ theme }) {
                   fontSize: '15px',
                   color: isDark ? '#cbd5e1' : '#475569',
                   lineHeight: '1.5',
-                  whiteSpace: 'pre-wrap',
+                  display: '-webkit-box',
+                  WebkitBoxOrient: 'vertical',
+                  WebkitLineClamp: 3,
+                  overflow: 'hidden',
                   overflowWrap: 'anywhere'
                 }}>
                   {note.content}
@@ -469,6 +524,75 @@ export default function Notes({ theme }) {
       )}
 
       {/* POPUP XEM CHI TIẾT KHI BẤM ICON MẮT 👁️ */}
+      {noteToMove && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          backgroundColor: 'rgba(0,0,0,0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000,
+          padding: '20px'
+        }}>
+          <div role="dialog" aria-modal="true" aria-labelledby="move-note-title" style={{
+            backgroundColor: isDark ? '#1e293b' : '#ffffff',
+            color: isDark ? '#f8fafc' : '#0f172a',
+            border: isDark ? '1px solid #334155' : '1px solid #e2e8f0',
+            borderRadius: '12px',
+            padding: '24px',
+            maxWidth: '420px',
+            width: '100%',
+            boxShadow: '0 10px 25px rgba(0,0,0,0.2)'
+          }}>
+            <h3 id="move-note-title" style={{ margin: '0 0 10px', fontSize: '18px' }}>
+              Chuyển ghi chú sang riêng tư?
+            </h3>
+            <p style={{ margin: '0 0 20px', color: isDark ? '#cbd5e1' : '#475569', lineHeight: '1.5' }}>
+              Ghi chú sẽ được chuyển khỏi danh sách công khai.
+            </p>
+            {moveError && (
+              <p role="alert" style={{ margin: '0 0 16px', color: '#dc2626', fontSize: '14px' }}>
+                {moveError}
+              </p>
+            )}
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+              <button
+                type="button"
+                onClick={() => {
+                  setNoteToMove(null);
+                  setMoveError('');
+                }}
+                style={{
+                  padding: '8px 16px',
+                  border: isDark ? '1px solid #475569' : '1px solid #cbd5e1',
+                  borderRadius: '8px',
+                  backgroundColor: 'transparent',
+                  color: isDark ? '#e2e8f0' : '#334155',
+                  fontWeight: '600'
+                }}
+              >
+                Hủy
+              </button>
+              <button
+                type="button"
+                onClick={confirmMoveToPrivate}
+                style={{
+                  padding: '8px 16px',
+                  border: 'none',
+                  borderRadius: '8px',
+                  backgroundColor: '#f59e0b',
+                  color: '#ffffff',
+                  fontWeight: '600'
+                }}
+              >
+                Chuyển
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {viewingNote && (
         <div style={{
           position: 'fixed',

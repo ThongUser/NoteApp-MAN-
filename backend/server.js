@@ -123,6 +123,43 @@ app.delete('/api/notes/:topic/:id', (req, res) => {
   }
 });
 
+app.post('/api/notes/:topic/:id/move-private', (req, res) => {
+  const validTopics = ['hoc-tap', 'cong-viec', 'ca-nhan'];
+  if (!validTopics.includes(req.params.topic)) {
+    return res.status(400).json({ message: "Danh mục ghi chú không hợp lệ" });
+  }
+
+  const publicNotesFile = getFilePath(req.params.topic);
+  try {
+    const publicNotes = safeReadJSON(publicNotesFile, []);
+    const noteIndex = publicNotes.findIndex((note) => String(note.id) === String(req.params.id));
+    if (noteIndex === -1) {
+      return res.status(404).json({ message: "Không tìm thấy ghi chú" });
+    }
+
+    const privateNotes = safeReadJSON(privateNotesFile, []);
+    let privateNoteId = Date.now();
+    while (privateNotes.some((note) => String(note.id) === String(privateNoteId))) {
+      privateNoteId += 1;
+    }
+
+    const privateNote = { ...publicNotes[noteIndex], id: String(privateNoteId) };
+    const nextPublicNotes = publicNotes.filter((_, index) => index !== noteIndex);
+
+    fs.writeFileSync(privateNotesFile, JSON.stringify([...privateNotes, privateNote], null, 2), 'utf8');
+    try {
+      fs.writeFileSync(publicNotesFile, JSON.stringify(nextPublicNotes, null, 2), 'utf8');
+    } catch (error) {
+      fs.writeFileSync(privateNotesFile, JSON.stringify(privateNotes, null, 2), 'utf8');
+      throw error;
+    }
+
+    res.json({ success: true, note: privateNote });
+  } catch (error) {
+    res.status(500).json({ message: "Lỗi chuyển ghi chú sang riêng tư" });
+  }
+});
+
 // ==========================================
 // 3. MODULE: GHI CHÚ RIÊNG TƯ (Sprint 3)
 // ==========================================

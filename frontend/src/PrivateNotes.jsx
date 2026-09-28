@@ -473,7 +473,7 @@ function PrivateNotes() {
                     </button>
                   </div>
                 </div>
-                <p style={{ margin: '0 0 16px 0', color: '#334155', fontSize: '14px', lineHeight: '1.5', minHeight: '20px', whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>
+                <p style={{ margin: '0 0 16px 0', color: '#334155', fontSize: '14px', lineHeight: '1.5', minHeight: '20px', display: '-webkit-box', WebkitBoxOrient: 'vertical', WebkitLineClamp: 3, overflow: 'hidden', overflowWrap: 'anywhere' }}>
                   {note.content}
                 </p>
               </div>
