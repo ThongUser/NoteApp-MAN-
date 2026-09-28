@@ -16,11 +16,11 @@ export default function Notes({ theme }) {
   const [viewingNote, setViewingNote] = useState(null);
   const [deletingNote, setDeletingNote] = useState(null);
 
-  // --- STATE TOOLBAR & PHÂN TRANG ---
+  // --- STATE TOOLBAR & PHÂN TRANG (TỐI ĐA 6 BÀI / TRANG) ---
   const [searchTerm, setSearchTerm] = useState('');
   const [dateFilter, setDateFilter] = useState('newest');
   const [page, setPage] = useState(1);
-  const [limit] = useState(6); // Tối đa 6 ghi chú / trang
+  const limit = 6; // Bắt buộc tối đa 6 bài / trang
   const [totalPages, setTotalPages] = useState(1);
 
   const isDark = theme === 'dark';
@@ -40,57 +40,51 @@ export default function Notes({ theme }) {
     return `${hours}:${minutes}:${seconds} ${day}/${month}/${year}`;
   };
 
-  // FETCH DỮ LIỆU TỪ API
+  // FETCH DỮ LIỆU TỪ API & PHÂN TRANG CHUẨN 6 BÀI / TRANG
+  // FETCH DỮ LIỆU TỪ API & PHÂN TRANG CHUẨN 6 BÀI / TRANG
   const fetchNotes = async () => {
     setLoading(true);
     const fileSlug = CATEGORY_FILE_MAP[selectedFilter] || 'hoc-tap';
 
-    const queryParams = new URLSearchParams({
-      search: searchTerm.trim(),
-      date: dateFilter,
-      page: page.toString(),
-      limit: limit.toString(),
-    }).toString();
-
-    const url = `http://localhost:5000/api/notes/${fileSlug}?${queryParams}`;
-
     try {
-      const res = await fetch(url);
+      const res = await fetch(`http://localhost:5000/api/notes/${fileSlug}`);
       if (res.ok) {
         const data = await res.json();
-        const rawNotes = Array.isArray(data) ? data : (data?.data || []);
+        // Lấy mảng dữ liệu dù Backend trả về dạng [...] hay { data: [...] }
+        let rawNotes = Array.isArray(data) ? data : (data?.data || []);
 
-        // Nếu backend đã tính toán sẵn phân trang (totalPages)
-        if (data?.totalPages) {
-          setTotalPages(data.totalPages);
-          setNotes(rawNotes);
-        } else {
-          // Xử lý Lọc, Sắp xếp & Phân trang phía Client (Fallback)
-          let filtered = rawNotes;
-
-          if (searchTerm.trim()) {
-            const keyword = searchTerm.toLowerCase().trim();
-            filtered = filtered.filter(
-              (n) =>
-                n.title?.toLowerCase().includes(keyword) ||
-                n.content?.toLowerCase().includes(keyword)
-            );
-          }
-
-          filtered = [...filtered].sort((a, b) => {
-            const dateA = new Date(a.createdAt || 0);
-            const dateB = new Date(b.createdAt || 0);
-            return dateFilter === 'newest' ? dateB - dateA : dateA - dateB;
-          });
-
-          const total = Math.ceil(filtered.length / limit) || 1;
-          setTotalPages(total);
-
-          const startIndex = (page - 1) * limit;
-          const paginatedNotes = filtered.slice(startIndex, startIndex + limit);
-
-          setNotes(paginatedNotes);
+        // 1. Tìm kiếm theo từ khóa
+        if (searchTerm.trim()) {
+          const keyword = searchTerm.toLowerCase().trim();
+          rawNotes = rawNotes.filter(
+            (n) =>
+              n.title?.toLowerCase().includes(keyword) ||
+              n.content?.toLowerCase().includes(keyword)
+          );
         }
+
+        // 2. Sắp xếp theo thời gian
+        rawNotes = [...rawNotes].sort((a, b) => {
+          const dateA = new Date(a.createdAt || 0);
+          const dateB = new Date(b.createdAt || 0);
+          return dateFilter === 'newest' ? dateB - dateA : dateA - dateB;
+        });
+
+        // 3. Tính tổng số trang (mỗi trang tối đa 6 bài)
+        const total = Math.ceil(rawNotes.length / limit) || 1;
+        setTotalPages(total);
+
+        // Đảm bảo trang hiện tại hợp lệ
+        const validPage = page > total ? total : page;
+        if (validPage !== page) {
+          setPage(validPage);
+        }
+
+        // 4. BẮT BUỘC CẮT ĐÚNG 6 BÀI CHO TRANG HẠN ĐỊNH
+        const startIndex = (validPage - 1) * limit;
+        const currentPageNotes = rawNotes.slice(startIndex, startIndex + limit);
+
+        setNotes(currentPageNotes);
       } else {
         setNotes([]);
         setTotalPages(1);
@@ -164,6 +158,7 @@ export default function Notes({ theme }) {
         });
 
         resetForm();
+        setPage(1);
         fetchNotes();
         window.dispatchEvent(new Event('notesChanged'));
       } catch (err) {
@@ -431,7 +426,7 @@ export default function Notes({ theme }) {
         </div>
       </form>
 
-      {/* 4. DANH SÁCH GHI CHÚ */}
+      {/* 4. DANH SÁCH GHI CHÚ (TỐI ĐA 6 BÀI/TRANG) */}
       {loading ? (
         <div style={{ textAlign: 'center', padding: '20px', color: '#f59e0b' }}>
           Đang tải ghi chú...
