@@ -52,6 +52,11 @@ app.put('/api/profile', (req, res) => {
 const notesDir = path.join(__dirname, 'data', 'notes');
 const deletedLogsPath = path.join(__dirname, 'data', 'deleted_logs.json');
 const notesPerPage = 10;
+const categoryByTopic = {
+  'hoc-tap': 'Học tập',
+  'cong-viec': 'Công việc',
+  'ca-nhan': 'Cá nhân'
+};
 
 // Khởi tạo thư mục tự động nếu chưa tồn tại
 if (!fs.existsSync(notesDir)) {
@@ -106,11 +111,6 @@ const readAllNotes = () => fs.readdirSync(notesDir)
   .filter((fileName) => fileName.endsWith('.json'))
   .flatMap((fileName) => {
     const topic = path.basename(fileName, '.json');
-    const categoryByTopic = {
-      'hoc-tap': 'Học tập',
-      'cong-viec': 'Công việc',
-      'ca-nhan': 'Cá nhân'
-    };
     return safeReadJSON(path.join(notesDir, fileName), [])
       .map((note) => ({ ...note, category: note.category || categoryByTopic[topic] || topic }));
   });
@@ -148,6 +148,7 @@ app.post('/api/notes/:topic', (req, res) => {
       id: Date.now().toString(),
       title: req.body.title || "Không tiêu đề",
       content: req.body.content || "",
+      category: req.body.category || categoryByTopic[req.params.topic] || req.params.topic,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     };
@@ -254,7 +255,10 @@ app.post('/api/notes/:topic/:id/move-private', (req, res) => {
       return res.status(409).json({ message: "Ghi chú đã tồn tại trong danh sách riêng tư" });
     }
 
-    privateNotes.push(noteToMove);
+    privateNotes.push({
+      ...noteToMove,
+      category: noteToMove.category || categoryByTopic[req.params.topic] || req.params.topic
+    });
     const remainingNotes = notes.filter((_, index) => index !== noteIndex);
     fs.writeFileSync(privateNotesFile, JSON.stringify(privateNotes, null, 2), 'utf8');
     fs.writeFileSync(sourceFile, JSON.stringify(remainingNotes, null, 2), 'utf8');
@@ -272,6 +276,7 @@ app.post('/api/private/notes', (req, res) => {
       id: Date.now().toString(),
       title: req.body.title || "Lưu bút mật",
       content: req.body.content || "",
+      category: req.body.category || 'Học tập',
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     };
