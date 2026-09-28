@@ -16,17 +16,17 @@ export default function Notes({ theme }) {
   const [loading, setLoading] = useState(false);
   const [viewingNote, setViewingNote] = useState(null);
 
-  // --- STATE DÀNH CHO TOOLBAR & CHUYỂN TRANG ---
-  const [searchTerm, setSearchTerm] = useState('');      // Ô input tìm kiếm
-  const [dateFilter, setDateFilter] = useState('newest'); // Dropdown ngày tháng (Mới nhất / Cũ nhất)
+  // --- STATE TOOLBAR & PHÂN TRANG ---
+  const [searchTerm, setSearchTerm] = useState('');      // Từ khóa tìm kiếm
+  const [dateFilter, setDateFilter] = useState('newest'); // Sắp xếp theo ngày
   const [page, setPage] = useState(1);                     // Trang hiện tại
-  const [limit] = useState(6);                            // Số ghi chú mỗi trang
+  const [limit] = useState(8);                             // Tối đa 8 ghi chú / trang
   const [totalPages, setTotalPages] = useState(1);         // Tổng số trang
 
   const isDark = theme === 'dark';
   const categories = ['Học tập', 'Công việc', 'Cá nhân'];
 
-  // Format thời gian dạng: 09:15:00 21/9/2026
+  // Định dạng ngày tháng
   const formatDate = (dateStr) => {
     if (!dateStr) return '';
     const d = new Date(dateStr);
@@ -40,12 +40,11 @@ export default function Notes({ theme }) {
     return `${hours}:${minutes}:${seconds} ${day}/${month}/${year}`;
   };
 
-  // HÀM FETCH DỮ LIỆU: Ghép State vào URL
+  // HÀM FETCH DỮ LIỆU TỪ API
   const fetchNotes = async () => {
     setLoading(true);
     const fileSlug = CATEGORY_FILE_MAP[selectedFilter] || 'hoc-tap';
 
-    // Xây dựng URL chứa Query Parameters từ State
     const queryParams = new URLSearchParams({
       search: searchTerm.trim(),
       date: dateFilter,
@@ -59,60 +58,53 @@ export default function Notes({ theme }) {
       const res = await fetch(url);
       if (res.ok) {
         const data = await res.json();
-        
-        // Nếu Backend trả về object dạng { notes: [...], totalPages: 3 }
-        if (data && Array.isArray(data.notes)) {
-          setNotes(data.notes);
-          setTotalPages(data.totalPages || 1);
-        } 
-        // Nếu Backend chỉ trả về mảng đơn thuần (fallback xử lý phân trang & tìm kiếm ở client)
-        else if (Array.isArray(data)) {
-          let filtered = [...data];
 
-          // Lọc theo tìm kiếm
-          if (searchTerm.trim()) {
-            filtered = filtered.filter(
-              (n) =>
-                n.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                n.content?.toLowerCase().includes(searchTerm.toLowerCase())
-            );
-          }
+        // 👉 XỬ LÝ THEO YÊU CẦU CỦA BẠN: Lấy mảng dữ liệu từ data hoặc data.data
+        const noteList = Array.isArray(data) ? data : data?.data;
+        const rawNotes = Array.isArray(noteList) ? noteList : [];
 
-          // Sắp xếp theo ngày
-          filtered.sort((a, b) => {
-            const dateA = new Date(a.createdAt || 0);
-            const dateB = new Date(b.createdAt || 0);
-            return dateFilter === 'newest' ? dateB - dateA : dateA - dateB;
-          });
-
-          // Phân trang client
-          const total = Math.ceil(filtered.length / limit) || 1;
-          setTotalPages(total);
-
-          const startIndex = (page - 1) * limit;
-          const paginatedNotes = filtered.slice(startIndex, startIndex + limit);
-          setNotes(paginatedNotes);
-        } else {
-          setNotes([]);
-          setTotalPages(1);
+        // 1. Lọc theo từ khóa tìm kiếm
+        let filtered = rawNotes;
+        if (searchTerm.trim()) {
+          filtered = filtered.filter(
+            (n) =>
+              n.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+              n.content?.toLowerCase().includes(searchTerm.toLowerCase())
+          );
         }
+
+        // 2. Sắp xếp theo ngày
+        filtered = [...filtered].sort((a, b) => {
+          const dateA = new Date(a.createdAt || 0);
+          const dateB = new Date(b.createdAt || 0);
+          return dateFilter === 'newest' ? dateB - dateA : dateA - dateB;
+        });
+
+        // 3. Phân trang: Tối đa 8 ghi chú / trang
+        const total = Math.ceil(filtered.length / limit) || 1;
+        setTotalPages(total);
+
+        const startIndex = (page - 1) * limit;
+        const paginatedNotes = filtered.slice(startIndex, startIndex + limit);
+
+        // Lưu danh sách ghi chú của trang hiện tại
+        setNotes(paginatedNotes);
       } else {
         setNotes([]);
+        setTotalPages(1);
       }
     } catch (err) {
-      console.error('Lỗi khi tải ghi chú từ URL:', url, err);
+      console.error('Lỗi khi tải ghi chú:', err);
       setNotes([]);
     } finally {
       setLoading(false);
     }
   };
 
-  // Tự động gọi fetchNotes mỗi khi thay đổi danh mục, ô tìm kiếm, dropdown ngày, hoặc chuyển trang
   useEffect(() => {
     fetchNotes();
   }, [selectedFilter, searchTerm, dateFilter, page]);
 
-  // Reset về trang 1 mỗi khi thay đổi từ khóa tìm kiếm hoặc sắp xếp
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);
     setPage(1);
@@ -123,7 +115,7 @@ export default function Notes({ theme }) {
     setPage(1);
   };
 
-  // Xử lý Thêm mới hoặc Cập nhật ghi chú
+  // Thêm / Sửa ghi chú
   const handleSaveNote = async (e) => {
     e.preventDefault();
     if (!title.trim() && !content.trim()) return;
@@ -177,7 +169,7 @@ export default function Notes({ theme }) {
     }
   };
 
-  // Xử lý XÓA ghi chú
+  // Xóa ghi chú
   const handleDeleteNote = async (noteId) => {
     if (!window.confirm('Bạn có chắc chắn muốn xóa ghi chú này?')) return;
 
@@ -212,7 +204,7 @@ export default function Notes({ theme }) {
   };
 
   return (
-    <div style={{ maxWidth: '850px', margin: '0 auto', fontFamily: 'sans-serif' }}>
+    <div style={{ maxWidth: '900px', margin: '0 auto', fontFamily: 'sans-serif' }}>
       
       {/* 1. DANH MỤC GHI CHÚ */}
       <div style={{
@@ -252,7 +244,6 @@ export default function Notes({ theme }) {
                   color: isActive ? '#ffffff' : (isDark ? '#cbd5e1' : '#475569'),
                   cursor: 'pointer',
                   transition: 'all 0.2s ease',
-                  boxShadow: isActive ? '0 2px 6px rgba(245, 158, 11, 0.3)' : 'none'
                 }}
               >
                 {cat}
@@ -262,7 +253,7 @@ export default function Notes({ theme }) {
         </div>
       </div>
 
-      {/* 2. TOOLBAR: Ô INPUT TÌM KIẾM & DROPDOWN NGÀY THÁNG */}
+      {/* 2. TOOLBAR TÌM KIẾM & LỌC NGÀY */}
       <div style={{
         backgroundColor: isDark ? '#1e293b' : '#ffffff',
         padding: '16px',
@@ -274,27 +265,24 @@ export default function Notes({ theme }) {
         flexWrap: 'wrap',
         alignItems: 'center'
       }}>
-        {/* Ô Input Tìm Kiếm */}
-        <div style={{ flex: 1, minWidth: '200px', display: 'flex', alignItems: 'center', position: 'relative' }}>
-          <input
-            type="text"
-            placeholder="🔍 Tìm kiếm ghi chú theo tiêu đề, nội dung..."
-            value={searchTerm}
-            onChange={handleSearchChange}
-            style={{
-              width: '100%',
-              padding: '10px 14px',
-              borderRadius: '8px',
-              border: isDark ? '1px solid #475569' : '1px solid #cbd5e1',
-              backgroundColor: isDark ? '#0f172a' : '#f8fafc',
-              color: isDark ? '#ffffff' : '#000000',
-              fontSize: '14px',
-              outline: 'none'
-            }}
-          />
-        </div>
+        <input
+          type="text"
+          placeholder="🔍 Tìm kiếm ghi chú theo tiêu đề, nội dung..."
+          value={searchTerm}
+          onChange={handleSearchChange}
+          style={{
+            flex: 1,
+            minWidth: '200px',
+            padding: '10px 14px',
+            borderRadius: '8px',
+            border: isDark ? '1px solid #475569' : '1px solid #cbd5e1',
+            backgroundColor: isDark ? '#0f172a' : '#f8fafc',
+            color: isDark ? '#ffffff' : '#000000',
+            fontSize: '14px',
+            outline: 'none'
+          }}
+        />
 
-        {/* Dropdown Lọc / Sắp xếp ngày tháng */}
         <select
           value={dateFilter}
           onChange={handleDateFilterChange}
@@ -315,7 +303,7 @@ export default function Notes({ theme }) {
         </select>
       </div>
 
-      {/* 3. FORM NHẬP / SỬA GHI CHÚ */}
+      {/* 3. FORM TẠO / SỬA GHI CHÚ */}
       <form onSubmit={handleSaveNote} style={{
         backgroundColor: isDark ? '#1e293b' : '#ffffff',
         padding: '16px',
@@ -420,7 +408,7 @@ export default function Notes({ theme }) {
         </div>
       </form>
 
-      {/* 4. DANH SÁCH GHI CHÚ */}
+      {/* 4. DANH SÁCH GHI CHÚ (TỐI ĐA 8 CARDS/TRANG) */}
       {loading ? (
         <div style={{ textAlign: 'center', padding: '20px', color: '#f59e0b' }}>
           Đang tải ghi chú...
@@ -434,12 +422,12 @@ export default function Notes({ theme }) {
           borderRadius: '12px',
           border: isDark ? '1px solid #334155' : '1px solid #e2e8f0'
         }}>
-          Không tìm thấy ghi chú nào phù hợp.
+          Không có ghi chú nào.
         </div>
       ) : (
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
           gap: '16px'
         }}>
           {notes.map((note) => (
@@ -465,53 +453,44 @@ export default function Notes({ theme }) {
                 }}>
                   <h3 style={{
                     margin: 0,
-                    fontSize: '18px',
+                    fontSize: '17px',
                     fontWeight: '700',
                     color: isDark ? '#f8fafc' : '#1e293b',
-                    paddingRight: '10px'
+                    paddingRight: '8px'
                   }}>
                     {note.title || 'Chưa có tiêu đề'}
                   </h3>
 
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
                     <button
                       onClick={() => setViewingNote(note)}
                       title="Xem chi tiết"
                       style={{ background: 'none', border: 'none', cursor: 'pointer', color: isDark ? '#94a3b8' : '#475569' }}
                     >
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                        <circle cx="12" cy="12" r="3"></circle>
-                      </svg>
+                      👁️
                     </button>
 
                     <button
                       onClick={() => handleStartEdit(note)}
-                      title="Sửa ghi chú"
+                      title="Sửa"
                       style={{ background: 'none', border: 'none', cursor: 'pointer', color: isDark ? '#94a3b8' : '#475569' }}
                     >
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M12 20h9"></path>
-                        <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
-                      </svg>
+                      ✏️
                     </button>
 
                     <button
                       onClick={() => handleDeleteNote(note.id)}
-                      title="Xóa ghi chú"
+                      title="Xóa"
                       style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#ef4444' }}
                     >
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <polyline points="3 6 5 6 21 6"></polyline>
-                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                      </svg>
+                      🗑️
                     </button>
                   </div>
                 </div>
 
                 <p style={{
                   margin: '0 0 16px 0',
-                  fontSize: '15px',
+                  fontSize: '14px',
                   color: isDark ? '#cbd5e1' : '#475569',
                   lineHeight: '1.5',
                   whiteSpace: 'pre-wrap'
@@ -520,7 +499,7 @@ export default function Notes({ theme }) {
                 </p>
               </div>
 
-              <div style={{ fontSize: '13px', color: isDark ? '#64748b' : '#94a3b8', fontWeight: '500' }}>
+              <div style={{ fontSize: '12px', color: isDark ? '#64748b' : '#94a3b8', fontWeight: '500' }}>
                 {formatDate(note.createdAt)}
               </div>
             </div>
@@ -528,7 +507,7 @@ export default function Notes({ theme }) {
         </div>
       )}
 
-      {/* 5. COMPONENT CHUYỂN TRANG (PAGINATION) */}
+      {/* 5. NÚT CHUYỂN TRANG */}
       {totalPages > 1 && (
         <div style={{
           display: 'flex',
@@ -538,7 +517,6 @@ export default function Notes({ theme }) {
           marginTop: '28px',
           marginBottom: '20px'
         }}>
-          {/* Nút Trang Trước */}
           <button
             disabled={page === 1}
             onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
@@ -555,7 +533,6 @@ export default function Notes({ theme }) {
             &laquo; Trước
           </button>
 
-          {/* Nút Các Trang */}
           {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
             <button
               key={p}
@@ -574,7 +551,6 @@ export default function Notes({ theme }) {
             </button>
           ))}
 
-          {/* Nút Trang Sau */}
           <button
             disabled={page === totalPages}
             onClick={() => setPage((prev) => Math.min(prev + 1, totalPages))}
@@ -593,7 +569,7 @@ export default function Notes({ theme }) {
         </div>
       )}
 
-      {/* POPUP XEM CHI TIẾT */}
+      {/* MODAL XEM CHI TIẾT */}
       {viewingNote && (
         <div style={{
           position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
