@@ -22,5 +22,21 @@
     "category": "Cá nhân",
     "createdAt": "2026-09-22T16:53:55.098Z",
     "updatedAt": "2026-09-22T16:53:55.098Z"
+  },
+  {
+    "id": "1790581153795",
+    "title": "hello",
+    "content": "\"Trong bối cảnh nền kinh tế toàn cầu đang chuyển mình mạnh mẽ với sự bùng nổ của cuộc cách mạng công nghiệp lần thứ tư, việc áp dụng công nghệ thông tin vào mọi lĩnh vực của đời sống xã hội đã trở thành một xu hướng tất yếu không thể đảo ngược. Hệ thống phần mềm hiện đại không chỉ đòi hỏi phải có một nền tảng cốt lõi vững chắc, khả năng xử lý dữ liệu lớn với tốc độ cao, mà còn cần phải sở hữu một giao diện người dùng (UI) trực quan, thân thiện và dễ dàng thao tác. Một thiết kế UI xuất sắc sẽ giúp người dùng rút ngắn thời gian làm quen với hệ thống, giảm thiểu tối đa các sai sót không đáng có trong quá trình nhập liệu, đồng thời nâng cao hiệu suất làm việc tổng thể của toàn doanh nghiệp. Chính vì vậy, quy trình kiểm thử giao diện đóng một vai trò cực kỳ then chốt và không thể tách rời trong chu kỳ phát triển sản phẩm, đảm bảo rằng mọi thành phần từ nút bấm, thanh điều hướng đến các đoạn văn bản hiển thị đều hoạt động một cách đồng bộ, mượt mà và chính xác tuyệt đối trên mọi độ phân giải màn hình và mọi thiết bị của người dùng.\"",
+    "category": "Học tập",
+    "createdAt": "2026-09-28T07:39:08.903Z",
+    "updatedAt": "2026-09-28T07:39:08.903Z"
+  },
+  {
+    "id": "1790612663845",
+    "title": "dsad",
+    "content": "adssad",
+    "category": "Học tập",
+    "createdAt": "2026-09-28T16:24:21.649Z",
+    "updatedAt": "2026-09-28T16:24:21.649Z"
   }
 ]
