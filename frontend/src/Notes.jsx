@@ -10,18 +10,18 @@ export default function Notes({ theme }) {
   const [notes, setNotes] = useState([]);
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
-  const [category, setCategory] = useState('Học tập');
   const [selectedFilter, setSelectedFilter] = useState('Học tập');
   const [editingId, setEditingId] = useState(null);
   const [loading, setLoading] = useState(false);
   const [viewingNote, setViewingNote] = useState(null);
+  const [deletingNote, setDeletingNote] = useState(null);
 
   // --- STATE TOOLBAR & PHÂN TRANG ---
-  const [searchTerm, setSearchTerm] = useState('');      // Từ khóa tìm kiếm
-  const [dateFilter, setDateFilter] = useState('newest'); // Sắp xếp theo ngày
-  const [page, setPage] = useState(1);                     // Trang hiện tại
-  const [limit] = useState(8);                             // Tối đa 8 ghi chú / trang
-  const [totalPages, setTotalPages] = useState(1);         // Tổng số trang
+  const [searchTerm, setSearchTerm] = useState('');
+  const [dateFilter, setDateFilter] = useState('newest');
+  const [page, setPage] = useState(1);
+  const [limit] = useState(6); // Tối đa 6 ghi chú / trang
+  const [totalPages, setTotalPages] = useState(1);
 
   const isDark = theme === 'dark';
   const categories = ['Học tập', 'Công việc', 'Cá nhân'];
@@ -40,7 +40,7 @@ export default function Notes({ theme }) {
     return `${hours}:${minutes}:${seconds} ${day}/${month}/${year}`;
   };
 
-  // HÀM FETCH DỮ LIỆU TỪ API
+  // FETCH DỮ LIỆU TỪ API
   const fetchNotes = async () => {
     setLoading(true);
     const fileSlug = CATEGORY_FILE_MAP[selectedFilter] || 'hoc-tap';
@@ -58,38 +58,39 @@ export default function Notes({ theme }) {
       const res = await fetch(url);
       if (res.ok) {
         const data = await res.json();
+        const rawNotes = Array.isArray(data) ? data : (data?.data || []);
 
-        // 👉 XỬ LÝ THEO YÊU CẦU CỦA BẠN: Lấy mảng dữ liệu từ data hoặc data.data
-        const noteList = Array.isArray(data) ? data : data?.data;
-        const rawNotes = Array.isArray(noteList) ? noteList : [];
+        // Nếu backend đã tính toán sẵn phân trang (totalPages)
+        if (data?.totalPages) {
+          setTotalPages(data.totalPages);
+          setNotes(rawNotes);
+        } else {
+          // Xử lý Lọc, Sắp xếp & Phân trang phía Client (Fallback)
+          let filtered = rawNotes;
 
-        // 1. Lọc theo từ khóa tìm kiếm
-        let filtered = rawNotes;
-        if (searchTerm.trim()) {
-          filtered = filtered.filter(
-            (n) =>
-              n.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-              n.content?.toLowerCase().includes(searchTerm.toLowerCase())
-          );
+          if (searchTerm.trim()) {
+            const keyword = searchTerm.toLowerCase().trim();
+            filtered = filtered.filter(
+              (n) =>
+                n.title?.toLowerCase().includes(keyword) ||
+                n.content?.toLowerCase().includes(keyword)
+            );
+          }
+
+          filtered = [...filtered].sort((a, b) => {
+            const dateA = new Date(a.createdAt || 0);
+            const dateB = new Date(b.createdAt || 0);
+            return dateFilter === 'newest' ? dateB - dateA : dateA - dateB;
+          });
+
+          const total = Math.ceil(filtered.length / limit) || 1;
+          setTotalPages(total);
+
+          const startIndex = (page - 1) * limit;
+          const paginatedNotes = filtered.slice(startIndex, startIndex + limit);
+
+          setNotes(paginatedNotes);
         }
-
-        // 2. Sắp xếp theo ngày
-        filtered = [...filtered].sort((a, b) => {
-          const dateA = new Date(a.createdAt || 0);
-          const dateB = new Date(b.createdAt || 0);
-          return dateFilter === 'newest' ? dateB - dateA : dateA - dateB;
-        });
-
-        // 3. Phân trang: Tối đa 8 ghi chú / trang
-        const total = Math.ceil(filtered.length / limit) || 1;
-        setTotalPages(total);
-
-        const startIndex = (page - 1) * limit;
-        const paginatedNotes = filtered.slice(startIndex, startIndex + limit);
-
-        // Lưu danh sách ghi chú của trang hiện tại
-        setNotes(paginatedNotes);
-
       } else {
         setNotes([]);
         setTotalPages(1);
@@ -97,6 +98,7 @@ export default function Notes({ theme }) {
     } catch (err) {
       console.error('Lỗi khi tải ghi chú:', err);
       setNotes([]);
+      setTotalPages(1);
     } finally {
       setLoading(false);
     }
@@ -111,6 +113,11 @@ export default function Notes({ theme }) {
     setPage(1);
   };
 
+  const handleClearSearch = () => {
+    setSearchTerm('');
+    setPage(1);
+  };
+
   const handleDateFilterChange = (e) => {
     setDateFilter(e.target.value);
     setPage(1);
@@ -121,7 +128,7 @@ export default function Notes({ theme }) {
     e.preventDefault();
     if (!title.trim() && !content.trim()) return;
 
-    const fileSlug = CATEGORY_FILE_MAP[category] || 'hoc-tap';
+    const fileSlug = CATEGORY_FILE_MAP[selectedFilter] || 'hoc-tap';
 
     if (editingId) {
       try {
@@ -131,7 +138,7 @@ export default function Notes({ theme }) {
           body: JSON.stringify({
             title: title.trim(),
             content: content.trim(),
-            category: category,
+            category: selectedFilter,
           }),
         });
         resetForm();
@@ -145,7 +152,7 @@ export default function Notes({ theme }) {
         id: Date.now(),
         title: title.trim(),
         content: content.trim(),
-        category: category,
+        category: selectedFilter,
         createdAt: new Date().toISOString(),
       };
 
@@ -157,12 +164,7 @@ export default function Notes({ theme }) {
         });
 
         resetForm();
-        if (category === selectedFilter) {
-          fetchNotes();
-        } else {
-          setSelectedFilter(category);
-          setPage(1);
-        }
+        fetchNotes();
         window.dispatchEvent(new Event('notesChanged'));
       } catch (err) {
         console.error('Lỗi khi tạo ghi chú:', err);
@@ -172,8 +174,6 @@ export default function Notes({ theme }) {
 
   // Xóa ghi chú
   const handleDeleteNote = async (noteId) => {
-    if (!window.confirm('Bạn có chắc chắn muốn xóa ghi chú này?')) return;
-
     const fileSlug = CATEGORY_FILE_MAP[selectedFilter] || 'hoc-tap';
 
     try {
@@ -182,6 +182,7 @@ export default function Notes({ theme }) {
       });
 
       if (res.ok) {
+        setDeletingNote(null);
         fetchNotes();
         window.dispatchEvent(new Event('notesChanged'));
       }
@@ -191,10 +192,9 @@ export default function Notes({ theme }) {
   };
 
   const handleStartEdit = (note) => {
-    setEditingId(note.id);
+    setEditingId(note.id || note._id);
     setTitle(note.title || '');
     setContent(note.content || '');
-    setCategory(note.category || selectedFilter);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -230,6 +230,7 @@ export default function Notes({ theme }) {
             return (
               <button
                 key={cat}
+                type="button"
                 onClick={() => {
                   setSelectedFilter(cat);
                   setPage(1);
@@ -266,23 +267,42 @@ export default function Notes({ theme }) {
         flexWrap: 'wrap',
         alignItems: 'center'
       }}>
-        <input
-          type="text"
-          placeholder="🔍 Tìm kiếm ghi chú theo tiêu đề, nội dung..."
-          value={searchTerm}
-          onChange={handleSearchChange}
-          style={{
-            flex: 1,
-            minWidth: '200px',
-            padding: '10px 14px',
-            borderRadius: '8px',
-            border: isDark ? '1px solid #475569' : '1px solid #cbd5e1',
-            backgroundColor: isDark ? '#0f172a' : '#f8fafc',
-            color: isDark ? '#ffffff' : '#000000',
-            fontSize: '14px',
-            outline: 'none'
-          }}
-        />
+        <div style={{ flex: 1, minWidth: '240px', position: 'relative', display: 'flex', alignItems: 'center' }}>
+          <input
+            type="text"
+            placeholder="🔍 Tìm kiếm ghi chú theo tiêu đề, nội dung..."
+            value={searchTerm}
+            onChange={handleSearchChange}
+            style={{
+              width: '100%',
+              padding: '10px 36px 10px 14px',
+              borderRadius: '8px',
+              border: isDark ? '1px solid #475569' : '1px solid #cbd5e1',
+              backgroundColor: isDark ? '#0f172a' : '#f8fafc',
+              color: isDark ? '#ffffff' : '#000000',
+              fontSize: '14px',
+              outline: 'none'
+            }}
+          />
+          {searchTerm && (
+            <button
+              type="button"
+              onClick={handleClearSearch}
+              style={{
+                position: 'absolute',
+                right: '10px',
+                background: 'none',
+                border: 'none',
+                color: isDark ? '#cbd5e1' : '#64748b',
+                cursor: 'pointer',
+                fontSize: '14px',
+                fontWeight: 'bold'
+              }}
+            >
+              ✕
+            </button>
+          )}
+        </div>
 
         <select
           value={dateFilter}
@@ -315,46 +335,24 @@ export default function Notes({ theme }) {
         flexDirection: 'column',
         gap: '12px'
       }}>
-        <div style={{ display: 'flex', gap: '10px' }}>
-          <input
-            type="text"
-            placeholder="Tiêu đề ghi chú..."
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            style={{
-              flex: 1,
-              padding: '10px 12px',
-              borderRadius: '8px',
-              border: isDark ? '1px solid #475569' : '1px solid #cbd5e1',
-              backgroundColor: isDark ? '#0f172a' : '#f8fafc',
-              color: isDark ? '#ffffff' : '#000000',
-              fontSize: '15px',
-              fontWeight: '600',
-              outline: 'none'
-            }}
-          />
-
-          <select
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
-            disabled={editingId !== null}
-            style={{
-              padding: '10px 12px',
-              borderRadius: '8px',
-              border: isDark ? '1px solid #475569' : '1px solid #cbd5e1',
-              backgroundColor: isDark ? '#0f172a' : '#f8fafc',
-              color: isDark ? '#ffffff' : '#000000',
-              fontSize: '14px',
-              fontWeight: '600',
-              outline: 'none',
-              cursor: editingId ? 'not-allowed' : 'pointer'
-            }}
-          >
-            <option value="Học tập">Học tập</option>
-            <option value="Công việc">Công việc</option>
-            <option value="Cá nhân">Cá nhân</option>
-          </select>
-        </div>
+        <input
+          type="text"
+          placeholder="Tiêu đề ghi chú..."
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          style={{
+            width: '100%',
+            padding: '10px 12px',
+            borderRadius: '8px',
+            border: isDark ? '1px solid #475569' : '1px solid #cbd5e1',
+            backgroundColor: isDark ? '#0f172a' : '#f8fafc',
+            color: isDark ? '#ffffff' : '#000000',
+            fontSize: '15px',
+            fontWeight: '600',
+            outline: 'none',
+            boxSizing: 'border-box'
+          }}
+        />
 
         <textarea
           placeholder="Nội dung ghi chú..."
@@ -362,6 +360,7 @@ export default function Notes({ theme }) {
           value={content}
           onChange={(e) => setContent(e.target.value)}
           style={{
+            width: '100%',
             padding: '10px 12px',
             borderRadius: '8px',
             border: isDark ? '1px solid #475569' : '1px solid #cbd5e1',
@@ -369,7 +368,8 @@ export default function Notes({ theme }) {
             color: isDark ? '#ffffff' : '#000000',
             fontSize: '14px',
             resize: 'vertical',
-            outline: 'none'
+            outline: 'none',
+            boxSizing: 'border-box'
           }}
         />
 
@@ -409,7 +409,7 @@ export default function Notes({ theme }) {
         </div>
       </form>
 
-      {/* 4. DANH SÁCH GHI CHÚ (TỐI ĐA 8 CARDS/TRANG) */}
+      {/* 4. DANH SÁCH GHI CHÚ */}
       {loading ? (
         <div style={{ textAlign: 'center', padding: '20px', color: '#f59e0b' }}>
           Đang tải ghi chú...
@@ -423,7 +423,7 @@ export default function Notes({ theme }) {
           borderRadius: '12px',
           border: isDark ? '1px solid #334155' : '1px solid #e2e8f0'
         }}>
-          Không có ghi chú nào.
+          {searchTerm ? `Không tìm thấy ghi chú nào chứa từ khóa "${searchTerm}"` : 'Không có ghi chú nào.'}
         </div>
       ) : (
         <div style={{
@@ -433,7 +433,7 @@ export default function Notes({ theme }) {
         }}>
           {notes.map((note) => (
             <div
-              key={note.id || Math.random()}
+              key={note.id || note._id || Math.random()}
               style={{
                 backgroundColor: isDark ? '#1e293b' : '#ffffff',
                 borderRadius: '16px',
@@ -442,7 +442,8 @@ export default function Notes({ theme }) {
                 display: 'flex',
                 flexDirection: 'column',
                 justify: 'space-between',
-                boxShadow: '0 2px 6px rgba(0,0,0,0.02)'
+                boxShadow: '0 2px 6px rgba(0,0,0,0.02)',
+                minWidth: 0
               }}
             >
               <div>
@@ -450,20 +451,23 @@ export default function Notes({ theme }) {
                   display: 'flex',
                   justify: 'space-between',
                   alignItems: 'center',
-                  marginBottom: '12px'
+                  marginBottom: '12px',
+                  gap: '8px'
                 }}>
                   <h3 style={{
                     margin: 0,
                     fontSize: '17px',
                     fontWeight: '700',
                     color: isDark ? '#f8fafc' : '#1e293b',
-                    paddingRight: '8px'
+                    overflowWrap: 'anywhere',
+                    minWidth: 0
                   }}>
                     {note.title || 'Chưa có tiêu đề'}
                   </h3>
 
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
                     <button
+                      type="button"
                       onClick={() => setViewingNote(note)}
                       title="Xem chi tiết"
                       style={{ background: 'none', border: 'none', cursor: 'pointer', color: isDark ? '#94a3b8' : '#475569' }}
@@ -472,6 +476,7 @@ export default function Notes({ theme }) {
                     </button>
 
                     <button
+                      type="button"
                       onClick={() => handleStartEdit(note)}
                       title="Sửa"
                       style={{ background: 'none', border: 'none', cursor: 'pointer', color: isDark ? '#94a3b8' : '#475569' }}
@@ -480,7 +485,8 @@ export default function Notes({ theme }) {
                     </button>
 
                     <button
-                      onClick={() => handleDeleteNote(note.id)}
+                      type="button"
+                      onClick={() => setDeletingNote(note)}
                       title="Xóa"
                       style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#ef4444' }}
                     >
@@ -494,7 +500,11 @@ export default function Notes({ theme }) {
                   fontSize: '14px',
                   color: isDark ? '#cbd5e1' : '#475569',
                   lineHeight: '1.5',
-                  whiteSpace: 'pre-wrap'
+                  overflowWrap: 'anywhere',
+                  display: '-webkit-box',
+                  WebkitBoxOrient: 'vertical',
+                  WebkitLineClamp: 3,
+                  overflow: 'hidden'
                 }}>
                   {note.content}
                 </p>
@@ -519,6 +529,7 @@ export default function Notes({ theme }) {
           marginBottom: '20px'
         }}>
           <button
+            type="button"
             disabled={page === 1}
             onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
             style={{
@@ -537,6 +548,7 @@ export default function Notes({ theme }) {
           {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
             <button
               key={p}
+              type="button"
               onClick={() => setPage(p)}
               style={{
                 padding: '8px 14px',
@@ -553,6 +565,7 @@ export default function Notes({ theme }) {
           ))}
 
           <button
+            type="button"
             disabled={page === totalPages}
             onClick={() => setPage((prev) => Math.min(prev + 1, totalPages))}
             style={{
@@ -585,8 +598,10 @@ export default function Notes({ theme }) {
             border: isDark ? '1px solid #334155' : '1px solid #e2e8f0',
             boxShadow: '0 10px 25px rgba(0,0,0,0.2)'
           }}>
-            <h3 style={{ marginTop: 0, fontSize: '20px' }}>{viewingNote.title}</h3>
-            <p style={{ whiteSpace: 'pre-wrap', color: isDark ? '#cbd5e1' : '#475569', lineHeight: '1.6' }}>
+            <h3 style={{ marginTop: 0, fontSize: '20px', overflowWrap: 'anywhere' }}>
+              {viewingNote.title || 'Chưa có tiêu đề'}
+            </h3>
+            <p style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', color: isDark ? '#cbd5e1' : '#475569', lineHeight: '1.6' }}>
               {viewingNote.content}
             </p>
             <div style={{ fontSize: '13px', color: '#94a3b8', marginTop: '16px' }}>
@@ -594,6 +609,7 @@ export default function Notes({ theme }) {
             </div>
             <div style={{ marginTop: '20px', textAlign: 'right' }}>
               <button
+                type="button"
                 onClick={() => setViewingNote(null)}
                 style={{
                   padding: '8px 20px', backgroundColor: '#f59e0b', color: '#fff',
@@ -601,6 +617,53 @@ export default function Notes({ theme }) {
                 }}
               >
                 Đóng
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL XÁC NHẬN XÓA */}
+      {deletingNote && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          backgroundColor: 'rgba(15, 23, 42, 0.65)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          zIndex: 1001, padding: '20px'
+        }}>
+          <div style={{
+            backgroundColor: isDark ? '#1e293b' : '#ffffff',
+            padding: '24px', borderRadius: '16px', maxWidth: '420px', width: '100%',
+            color: isDark ? '#f8fafc' : '#0f172a',
+            border: isDark ? '1px solid #334155' : '1px solid #e2e8f0',
+            boxShadow: '0 10px 25px rgba(0,0,0,0.2)'
+          }}>
+            <h3 style={{ margin: '0 0 10px', fontSize: '20px' }}>Xác nhận xóa ghi chú</h3>
+            <p style={{ margin: '0', color: isDark ? '#cbd5e1' : '#475569', lineHeight: '1.5', overflowWrap: 'anywhere' }}>
+              Bạn có chắc chắn muốn xóa “{deletingNote.title || 'Chưa có tiêu đề'}”? Hành động này không thể hoàn tác.
+            </p>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '24px' }}>
+              <button
+                type="button"
+                onClick={() => setDeletingNote(null)}
+                style={{
+                  padding: '9px 18px',
+                  backgroundColor: isDark ? '#334155' : '#e2e8f0',
+                  color: isDark ? '#f8fafc' : '#475569',
+                  border: 'none', borderRadius: '8px', fontWeight: '600', cursor: 'pointer'
+                }}
+              >
+                Hủy
+              </button>
+              <button
+                type="button"
+                onClick={() => handleDeleteNote(deletingNote.id || deletingNote._id)}
+                style={{
+                  padding: '9px 18px', backgroundColor: '#dc2626', color: '#ffffff',
+                  border: 'none', borderRadius: '8px', fontWeight: '600', cursor: 'pointer'
+                }}
+              >
+                Xóa ghi chú
               </button>
             </div>
           </div>

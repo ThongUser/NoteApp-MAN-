@@ -3,33 +3,53 @@ import { useState, useEffect } from 'react';
 function PrivateNotes() {
   const [notes, setNotes] = useState([]);
 
-  // 2. Quản lý trạng thái khóa mật khẩu
+  // Quản lý trạng thái khóa mật khẩu
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [passwordInput, setPasswordInput] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
-  // 3. Quản lý Form thêm/sửa
+  // Quản lý Form thêm/sửa & Tìm kiếm
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [selectedFilter, setSelectedFilter] = useState('Học tập');
+  const [searchTerm, setSearchTerm] = useState('');
   const [editingId, setEditingId] = useState(null);
   const [viewingNote, setViewingNote] = useState(null);
   const [deletingNote, setDeletingNote] = useState(null);
+
+  // --- STATE PHÂN TRANG ---
+  const [page, setPage] = useState(1);
+  const limit = 6; // Tối đa 6 ghi chú / trang
+
   const categories = ['Học tập', 'Công việc', 'Cá nhân'];
 
-  // Tải ghi chú riêng tư từ backend sau khi xác thực.
+  // Tải ghi chú riêng tư từ backend sau khi xác thực
   useEffect(() => {
     if (!isAuthenticated) return;
 
-    fetch('http://localhost:5000/api/private/notes')
+    // Tạo query parameters từ các state
+    const queryParams = new URLSearchParams({
+      category: selectedFilter,
+      search: searchTerm.trim(),
+      page: page.toString(),
+      limit: limit.toString(),
+    }).toString();
+
+    // Ghép vào URL fetch
+    const url = `http://localhost:5000/api/private/notes?${queryParams}`;
+
+    fetch(url)
       .then((response) => {
         if (!response.ok) throw new Error('Không thể tải ghi chú riêng tư');
         return response.json();
       })
-      .then((data) => setNotes(Array.isArray(data) ? data : []))
+      .then((data) => {
+        const noteList = Array.isArray(data) ? data : (data?.data || []);
+        setNotes(noteList);
+      })
       .catch((error) => setErrorMsg(error.message));
-  }, [isAuthenticated]);
+  }, [isAuthenticated, selectedFilter, searchTerm, page, limit]);
 
   // Xử lý kiểm tra mật khẩu
   const handleUnlock = async (e) => {
@@ -114,11 +134,24 @@ function PrivateNotes() {
     setContent('');
   };
 
-  const visibleNotes = notes.filter(
-    (note) => (note.category || 'Học tập') === selectedFilter
-  );
+  // LỌC GHI CHÚ BẰNG DANH MỤC VÀ TỪ KHÓA TÌM KIẾM (Dự phòng phía Client)
+  const visibleNotes = notes.filter((note) => {
+    const matchesCategory = (note.category || 'Học tập') === selectedFilter;
+    const keyword = searchTerm.toLowerCase().trim();
+    const matchesSearch =
+      !keyword ||
+      note.title?.toLowerCase().includes(keyword) ||
+      note.content?.toLowerCase().includes(keyword);
 
-  // --- 🔒 MÀN HÌNH BẮT NHẬP MẬT KHẨU KHI CHƯA XÁC THỰC ---
+    return matchesCategory && matchesSearch;
+  });
+
+  // TÍNH TOÁN PHÂN TRANG CHO PRIVATE NOTES
+  const totalPages = Math.ceil(visibleNotes.length / limit) || 1;
+  const startIndex = (page - 1) * limit;
+  const paginatedNotes = visibleNotes.slice(startIndex, startIndex + limit);
+
+  // --- 🔒 MÀN HÌNH MẬT KHẨU ---
   if (!isAuthenticated) {
     return (
       <div style={{
@@ -207,7 +240,7 @@ function PrivateNotes() {
     );
   }
 
-  // --- 🔓 NỘI DUNG GHI CHÚ BẢO MẬT KHI ĐÃ MỞ KHÓA ---
+  // --- 🔓 MÀN HÌNH GHI CHÚ RIÊNG TƯ ---
   return (
     <div style={{
       backgroundColor: '#f8fafc',
@@ -221,7 +254,6 @@ function PrivateNotes() {
           🔒 Khu vực Ghi chú Riêng tư
         </h2>
         
-        {/* Nút Khóa nhanh */}
         <button 
           onClick={() => setIsAuthenticated(false)}
           style={{
@@ -238,13 +270,13 @@ function PrivateNotes() {
         </button>
       </div>
 
-      {/* Tab lọc ghi chú theo danh mục */}
+      {/* 1. DANH MỤC LỌC GHI CHÚ */}
       <div style={{
         backgroundColor: '#faf9f6',
         padding: '20px',
         borderRadius: '16px',
         border: '1px solid #e2e8f0',
-        marginBottom: '20px'
+        marginBottom: '16px'
       }}>
         <h3 style={{ margin: '0 0 16px 0', color: '#0f172a', fontSize: '20px' }}>
           Danh sách ghi chú
@@ -258,6 +290,7 @@ function PrivateNotes() {
                 type="button"
                 onClick={() => {
                   setSelectedFilter(categoryName);
+                  setPage(1);
                   handleCancelEdit();
                 }}
                 style={{
@@ -280,7 +313,58 @@ function PrivateNotes() {
         </div>
       </div>
 
-      {/* Form nhập ghi chú */}
+      {/* 2. KHUNG TÌM KIẾM RIÊNG TƯ */}
+      <div style={{
+        backgroundColor: '#ffffff',
+        padding: '12px 16px',
+        borderRadius: '10px',
+        border: '1px solid #cbd5e1',
+        marginBottom: '20px',
+        display: 'flex',
+        alignItems: 'center',
+        position: 'relative'
+      }}>
+        <input
+          type="text"
+          placeholder="🔍 Tìm kiếm ghi chú bí mật theo tiêu đề, nội dung..."
+          value={searchTerm}
+          onChange={(e) => {
+            setSearchTerm(e.target.value);
+            setPage(1);
+          }}
+          style={{
+            width: '100%',
+            padding: '8px 30px 8px 10px',
+            border: 'none',
+            outline: 'none',
+            fontSize: '14px',
+            color: '#0f172a',
+            backgroundColor: 'transparent'
+          }}
+        />
+        {searchTerm && (
+          <button
+            onClick={() => {
+              setSearchTerm('');
+              setPage(1);
+            }}
+            style={{
+              position: 'absolute',
+              right: '16px',
+              background: 'none',
+              border: 'none',
+              color: '#64748b',
+              cursor: 'pointer',
+              fontSize: '14px',
+              fontWeight: 'bold'
+            }}
+          >
+            ✕
+          </button>
+        )}
+      </div>
+
+      {/* 3. FORM NHẬP GHI CHÚ */}
       <div style={{
         backgroundColor: '#ffffff',
         border: '1px solid #cbd5e1',
@@ -366,19 +450,21 @@ function PrivateNotes() {
         </div>
       </div>
 
-      {/* Danh sách thẻ ghi chú */}
+      {/* 4. DANH SÁCH THẺ GHI CHÚ */}
       <div style={{ 
         display: 'grid', 
         gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', 
         gap: '16px' 
       }}>
-        {visibleNotes.length === 0 ? (
-          <div style={{ color: '#94a3b8', fontStyle: 'italic' }}>
-            Chưa có ghi chú bí mật nào trong danh mục "{selectedFilter}".
+        {paginatedNotes.length === 0 ? (
+          <div style={{ color: '#94a3b8', fontStyle: 'italic', padding: '10px 0' }}>
+            {searchTerm
+              ? `Không tìm thấy ghi chú bí mật nào phù hợp với từ khóa "${searchTerm}".`
+              : `Chưa có ghi chú bí mật nào trong danh mục "${selectedFilter}".`}
           </div>
         ) : (
-          visibleNotes.map((note) => (
-            <div key={note.id} style={{
+          paginatedNotes.map((note) => (
+            <div key={note.id || note._id} style={{
               backgroundColor: '#ffffff',
               border: '1px solid #e2e8f0',
               borderRadius: '10px',
@@ -386,13 +472,13 @@ function PrivateNotes() {
               boxShadow: '0 2px 4px rgba(0,0,0,0.04)',
               display: 'flex',
               flexDirection: 'column',
-              justifyContent: 'space-between',
+              justify: 'space-between',
               minWidth: 0
             }}>
               <div>
                 <div style={{
                   display: 'flex',
-                  justifyContent: 'space-between',
+                  justify: 'space-between',
                   alignItems: 'center',
                   gap: '10px',
                   marginBottom: '12px'
@@ -413,16 +499,7 @@ function PrivateNotes() {
                       type="button"
                       onClick={() => setViewingNote(note)}
                       title="Xem chi tiết"
-                      aria-label="Xem chi tiết"
-                      style={{
-                        background: 'none',
-                        border: 'none',
-                        cursor: 'pointer',
-                        padding: '2px',
-                        color: '#475569',
-                        display: 'flex',
-                        alignItems: 'center'
-                      }}
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '2px', color: '#475569' }}
                     >
                       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
@@ -434,16 +511,7 @@ function PrivateNotes() {
                       type="button"
                       onClick={() => handleEditClick(note)}
                       title="Sửa ghi chú"
-                      aria-label="Sửa ghi chú"
-                      style={{
-                        background: 'none',
-                        border: 'none',
-                        cursor: 'pointer',
-                        padding: '2px',
-                        color: '#475569',
-                        display: 'flex',
-                        alignItems: 'center'
-                      }}
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '2px', color: '#475569' }}
                     >
                       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M12 20h9" />
@@ -455,16 +523,7 @@ function PrivateNotes() {
                       type="button"
                       onClick={() => setDeletingNote(note)}
                       title="Xóa ghi chú"
-                      aria-label="Xóa ghi chú"
-                      style={{
-                        background: 'none',
-                        border: 'none',
-                        cursor: 'pointer',
-                        padding: '2px',
-                        color: '#ef4444',
-                        display: 'flex',
-                        alignItems: 'center'
-                      }}
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '2px', color: '#ef4444' }}
                     >
                       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <polyline points="3 6 5 6 21 6" />
@@ -482,27 +541,77 @@ function PrivateNotes() {
         )}
       </div>
 
+      {/* 5. NÚT CHUYỂN TRANG */}
+      {totalPages > 1 && (
+        <div style={{
+          display: 'flex',
+          justify: 'center',
+          alignItems: 'center',
+          gap: '8px',
+          marginTop: '28px',
+          marginBottom: '20px'
+        }}>
+          <button
+            disabled={page === 1}
+            onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
+            style={{
+              padding: '8px 14px',
+              borderRadius: '8px',
+              border: '1px solid #cbd5e1',
+              backgroundColor: page === 1 ? '#e2e8f0' : '#ffffff',
+              color: page === 1 ? '#94a3b8' : '#000000',
+              cursor: page === 1 ? 'not-allowed' : 'pointer',
+              fontWeight: '600'
+            }}
+          >
+            &laquo; Trước
+          </button>
+
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+            <button
+              key={p}
+              onClick={() => setPage(p)}
+              style={{
+                padding: '8px 14px',
+                borderRadius: '8px',
+                border: 'none',
+                backgroundColor: page === p ? '#6d28d9' : '#e2e8f0',
+                color: page === p ? '#ffffff' : '#000000',
+                fontWeight: '700',
+                cursor: 'pointer'
+              }}
+            >
+              {p}
+            </button>
+          ))}
+
+          <button
+            disabled={page === totalPages}
+            onClick={() => setPage((prev) => Math.min(prev + 1, totalPages))}
+            style={{
+              padding: '8px 14px',
+              borderRadius: '8px',
+              border: '1px solid #cbd5e1',
+              backgroundColor: page === totalPages ? '#e2e8f0' : '#ffffff',
+              color: page === totalPages ? '#94a3b8' : '#000000',
+              cursor: page === totalPages ? 'not-allowed' : 'pointer',
+              fontWeight: '600'
+            }}
+          >
+            Sau &raquo;
+          </button>
+        </div>
+      )}
+
+      {/* MODAL XEM CHI TIẾT */}
       {viewingNote && (
         <div style={{
-          position: 'fixed',
-          inset: 0,
-          backgroundColor: 'rgba(0,0,0,0.5)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 1000,
-          padding: '20px'
+          position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '20px'
         }}>
           <div style={{
-            backgroundColor: '#ffffff',
-            padding: '24px',
-            borderRadius: '16px',
-            maxWidth: '500px',
-            width: '100%',
-            maxHeight: '90vh',
-            overflowY: 'auto',
-            color: '#0f172a',
-            boxShadow: '0 10px 25px rgba(0,0,0,0.2)'
+            backgroundColor: '#ffffff', padding: '24px', borderRadius: '16px', maxWidth: '500px', width: '100%',
+            maxHeight: '90vh', overflowY: 'auto', color: '#0f172a', boxShadow: '0 10px 25px rgba(0,0,0,0.2)'
           }}>
             <h3 style={{ marginTop: 0, fontSize: '20px', overflowWrap: 'anywhere' }}>
               {viewingNote.title || 'Chưa có tiêu đề'}
@@ -515,13 +624,8 @@ function PrivateNotes() {
                 type="button"
                 onClick={() => setViewingNote(null)}
                 style={{
-                  padding: '8px 20px',
-                  backgroundColor: '#f59e0b',
-                  color: '#ffffff',
-                  border: 'none',
-                  borderRadius: '8px',
-                  fontWeight: '600',
-                  cursor: 'pointer'
+                  padding: '8px 20px', backgroundColor: '#f59e0b', color: '#ffffff',
+                  border: 'none', borderRadius: '8px', fontWeight: '600', cursor: 'pointer'
                 }}
               >
                 Đóng
@@ -531,29 +635,17 @@ function PrivateNotes() {
         </div>
       )}
 
+      {/* MODAL XÁC NHẬN XÓA */}
       {deletingNote && (
         <div style={{
-          position: 'fixed',
-          inset: 0,
-          backgroundColor: 'rgba(15, 23, 42, 0.55)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 1001,
-          padding: '20px'
+          position: 'fixed', inset: 0, backgroundColor: 'rgba(15, 23, 42, 0.55)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1001, padding: '20px'
         }}>
           <div style={{
-            backgroundColor: '#ffffff',
-            padding: '24px',
-            borderRadius: '16px',
-            maxWidth: '420px',
-            width: '100%',
-            color: '#0f172a',
-            boxShadow: '0 10px 25px rgba(0,0,0,0.2)'
+            backgroundColor: '#ffffff', padding: '24px', borderRadius: '16px', maxWidth: '420px', width: '100%',
+            color: '#0f172a', boxShadow: '0 10px 25px rgba(0,0,0,0.2)'
           }}>
-            <h3 style={{ margin: '0 0 10px', fontSize: '20px' }}>
-              Xác nhận xóa ghi chú
-            </h3>
+            <h3 style={{ margin: '0 0 10px', fontSize: '20px' }}>Xác nhận xóa ghi chú</h3>
             <p style={{ margin: '0', color: '#475569', lineHeight: '1.5', overflowWrap: 'anywhere' }}>
               Bạn có chắc chắn muốn xóa “{deletingNote.title || 'Chưa có tiêu đề'}”? Hành động này không thể hoàn tác.
             </p>
@@ -562,28 +654,18 @@ function PrivateNotes() {
                 type="button"
                 onClick={() => setDeletingNote(null)}
                 style={{
-                  padding: '9px 18px',
-                  backgroundColor: '#e2e8f0',
-                  color: '#475569',
-                  border: 'none',
-                  borderRadius: '8px',
-                  fontWeight: '600',
-                  cursor: 'pointer'
+                  padding: '9px 18px', backgroundColor: '#e2e8f0', color: '#475569',
+                  border: 'none', borderRadius: '8px', fontWeight: '600', cursor: 'pointer'
                 }}
               >
                 Hủy
               </button>
               <button
                 type="button"
-                onClick={() => handleDelete(deletingNote.id)}
+                onClick={() => handleDelete(deletingNote.id || deletingNote._id)}
                 style={{
-                  padding: '9px 18px',
-                  backgroundColor: '#dc2626',
-                  color: '#ffffff',
-                  border: 'none',
-                  borderRadius: '8px',
-                  fontWeight: '600',
-                  cursor: 'pointer'
+                  padding: '9px 18px', backgroundColor: '#dc2626', color: '#ffffff',
+                  border: 'none', borderRadius: '8px', fontWeight: '600', cursor: 'pointer'
                 }}
               >
                 Xóa ghi chú
