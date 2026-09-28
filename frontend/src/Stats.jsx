@@ -11,15 +11,25 @@ export default function Stats({ theme }) {
   // 1. Tải toàn bộ ghi chú công khai từ các danh mục trên backend
   const updateStats = async () => {
     try {
-      const responses = await Promise.all(
-        PUBLIC_NOTE_TOPICS.map((topic) => fetch(`http://localhost:5000/api/notes/${topic}`))
-      );
+      const notesByTopic = await Promise.all(PUBLIC_NOTE_TOPICS.map(async (topic) => {
+        const fetchPage = async (page) => {
+          const response = await fetch(`http://localhost:5000/api/notes/${topic}?page=${page}`);
+          if (!response.ok) {
+            throw new Error('Không thể tải danh sách ghi chú công khai');
+          }
+          return response.json();
+        };
 
-      if (responses.some((response) => !response.ok)) {
-        throw new Error('Không thể tải danh sách ghi chú công khai');
-      }
+        const firstPage = await fetchPage(1);
+        const remainingPages = await Promise.all(
+          Array.from({ length: Math.max(0, (firstPage.totalPages || 1) - 1) }, (_, index) =>
+            fetchPage(index + 2)
+          )
+        );
 
-      const notesByTopic = await Promise.all(responses.map((response) => response.json()));
+        return [firstPage, ...remainingPages].flatMap((page) => page.data || []);
+      }));
+
       setNotes(notesByTopic.flat().filter((note) => note && typeof note === 'object'));
     } catch (e) {
       console.error('Lỗi khi tải dữ liệu thống kê:', e);

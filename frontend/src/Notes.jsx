@@ -89,6 +89,7 @@ export default function Notes({ theme }) {
 
         // Lưu danh sách ghi chú của trang hiện tại
         setNotes(paginatedNotes);
+
       } else {
         setNotes([]);
         setTotalPages(1);
