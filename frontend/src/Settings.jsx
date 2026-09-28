@@ -118,9 +118,9 @@ function Settings({ currentTheme }) {
         </select>
       </div>
 
-      {/* Mật khẩu vùng kín */}
+      {/* Mật khẩu riêng tư */}
       <div style={{ marginBottom: '24px' }}>
-        <label style={{ display: 'block', marginBottom: '6px', fontWeight: '600' }}>Mật khẩu vùng kín:</label>
+        <label style={{ display: 'block', marginBottom: '6px', fontWeight: '600' }}>Mật khẩu riêng tư:</label>
         <div style={{
           display: 'flex',
           alignItems: 'center',
