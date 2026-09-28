@@ -7,81 +7,27 @@ body {
     font-family: Arial, sans-serif;
 }
 
+/* APP LAYOUT & THEMES */
 .app {
     display: flex;
     min-height: 100vh;
 }
 
-.sidebar {
-    width: 220px;
-    padding: 20px;
-    background: #222;
-    color: white;
-}
-
-.sidebar h2 {
-    margin-bottom: 30px;
-}
-
-.sidebar nav {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-}
-
-.sidebar a {
-    color: white;
-    text-decoration: none;
-    padding: 10px;
-    border-radius: 5px;
-}
-
-.sidebar a:hover {
-    background: #444;
-}
-
-.content {
-    flex: 1;
-    padding: 20px;
-}
-
-button {
-    cursor: pointer;
-}
-
-input,
-textarea,
-select {
-    padding: 8px;
-}
-* {
-    box-sizing: border-box;
-}
-
-body {
-    margin: 0;
-    font-family: Arial, sans-serif;
-}
-
-
 .app.light {
     min-height: 100vh;
     display: flex;
-
     background: #ffffff;
     color: #222222;
 }
 
-
 .app.dark {
     min-height: 100vh;
     display: flex;
-
     background: #1e1e1e;
     color: #ffffff;
 }
 
-
+/* SIDEBAR */
 .sidebar {
     width: 220px;
     padding: 20px;
@@ -96,6 +42,9 @@ body {
     background: #111827;
 }
 
+.sidebar h2 {
+    margin-bottom: 30px;
+}
 
 .sidebar nav {
     display: flex;
@@ -122,47 +71,82 @@ body {
     color: white;
 }
 
+/* KHUNG SIDEBAR MỚI (MENU BOX) */
+.sidebar-container {
+    width: 220px;
+    padding: 20px;
+    background-color: #ffffff;
+    border-right: 1px solid #e2e8f0;
+}
 
+.menu-box {
+    background-color: #e0f2fe;
+    border: 2px solid #38bdf8;
+    border-radius: 12px;
+    padding: 16px;
+}
+
+.menu-title {
+    margin: 0 0 12px 0;
+    color: #0369a1;
+    font-size: 18px;
+}
+
+.menu-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.menu-item {
+    margin-bottom: 8px;
+}
+
+.menu-item:last-child {
+    margin-bottom: 0;
+}
+
+.menu-link {
+    display: block;
+    padding: 8px 12px;
+    background-color: #ffffff;
+    color: #0284c7;
+    text-decoration: none;
+    border-radius: 6px;
+    font-weight: 600;
+    border: 1px solid #bae6fd;
+    transition: all 0.2s ease;
+}
+
+.menu-link:hover {
+    background-color: #0284c7;
+    color: #ffffff;
+    border-color: #0284c7;
+}
+
+/* CONTENT AREA */
 .content {
     flex: 1;
     padding: 30px;
 }
-
 
 .user {
     margin-top: 40px;
     font-weight: bold;
 }
 
-
-.setting-item {
-    margin-bottom: 15px;
-}
-
-.setting-item label {
-    display: block;
-    margin-bottom: 5px;
-}
-
-.setting-item input,
-.setting-item select {
-    padding: 8px;
-    width: 300px;
-}
-
-
-.save-btn {
-    padding: 10px 20px;
-    border: none;
-    border-radius: 5px;
-    background: #2563eb;
-    color: white;
+/* INPUTS & BUTTONS */
+button {
     cursor: pointer;
 }
 
-.save-btn:hover {
-    background: #1d4ed8;
+input,
+textarea,
+select {
+    padding: 8px;
 }
+
+/* SETTINGS PAGE */
 .settings {
     max-width: 600px;
 }
@@ -189,7 +173,6 @@ body {
     border-radius: 5px;
 }
 
-
 .theme-options {
     display: flex;
     gap: 25px;
@@ -207,7 +190,6 @@ body {
     width: auto;
 }
 
-
 .save-btn {
     padding: 10px 20px;
     border: none;
@@ -220,57 +202,35 @@ body {
 .save-btn:hover {
     background: #1d4ed8;
 }
-/* Khung Sidebar */
-.sidebar-container {
-  width: 220px;
-  padding: 20px;
-  background-color: #ffffff;
-  border-right: 1px solid #e2e8f0;
+
+/* ======================================================== */
+/* TÍNH NĂNG 5: TOAST MESSAGE (THÔNG BÁO GÓC MÀN HÌNH)     */
+/* ======================================================== */
+.toast-message {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background-color: #10b981;
+    color: #ffffff;
+    padding: 12px 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+    font-size: 14px;
+    font-weight: 600;
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    animation: slideInToast 0.3s ease-in-out;
 }
 
-/* Khung Menu có viền và nền xanh biển nhạt */
-.menu-box {
-  background-color: #e0f2fe; /* Nền xanh biển nhạt */
-  border: 2px solid #38bdf8; /* Viền xanh */
-  border-radius: 12px;
-  padding: 16px;
-}
-
-.menu-title {
-  margin: 0 0 12px 0;
-  color: #0369a1;
-  font-size: 18px;
-}
-
-.menu-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.menu-item {
-  margin-bottom: 8px;
-}
-
-.menu-item:last-child {
-  margin-bottom: 0;
-}
-
-/* Kiểu dáng các nút Link trong Menu */
-.menu-link {
-  display: block;
-  padding: 8px 12px;
-  background-color: #ffffff;
-  color: #0284c7;
-  text-decoration: none;
-  border-radius: 6px;
-  font-weight: 600;
-  border: 1px solid #bae6fd;
-  transition: all 0.2s ease;
-}
-
-.menu-link:hover {
-  background-color: #0284c7;
-  color: #ffffff;
-  border-color: #0284c7;
+@keyframes slideInToast {
+    from {
+        transform: translateY(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
 }

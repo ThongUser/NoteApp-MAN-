@@ -16,6 +16,10 @@ export default function Notes({ theme }) {
   const [viewingNote, setViewingNote] = useState(null);
   const [deletingNote, setDeletingNote] = useState(null);
 
+  // --- TÍNH NĂNG 5: STATE LƯU TRẠNG THÁI XÓA & TOAST MESSAGE ---
+  const [deletedNote, setDeletedNote] = useState(null);
+  const [toastMessage, setToastMessage] = useState('');
+
   // --- STATE TOOLBAR & PHÂN TRANG (TỐI ĐA 6 BÀI / TRANG) ---
   const [searchTerm, setSearchTerm] = useState('');
   const [dateFilter, setDateFilter] = useState('newest');
@@ -40,7 +44,21 @@ export default function Notes({ theme }) {
     return `${hours}:${minutes}:${seconds} ${day}/${month}/${year}`;
   };
 
-  // FETCH DỮ LIỆU TỪ API & PHÂN TRANG CHUẨN 6 BÀI / TRANG
+  // --- TÍNH NĂNG 5: useEffect THEO DÕI TRẠNG THÁI XÓA VÀ HIỂN THỊ TOAST ---
+  useEffect(() => {
+    if (!deletedNote) return;
+
+    // Hiển thị Toast Message góc màn hình
+    setToastMessage('Đã xóa ghi chú thành công');
+
+    // Tự động ẩn Toast Message sau 3 giây
+    const timer = setTimeout(() => {
+      setToastMessage('');
+    }, 3000);
+
+    return () => clearTimeout(timer);
+  }, [deletedNote]);
+
   // FETCH DỮ LIỆU TỪ API & PHÂN TRANG CHUẨN 6 BÀI / TRANG
   const fetchNotes = async () => {
     setLoading(true);
@@ -50,7 +68,6 @@ export default function Notes({ theme }) {
       const res = await fetch(`http://localhost:5000/api/notes/${fileSlug}`);
       if (res.ok) {
         const data = await res.json();
-        // Lấy mảng dữ liệu dù Backend trả về dạng [...] hay { data: [...] }
         let rawNotes = Array.isArray(data) ? data : (data?.data || []);
 
         // 1. Tìm kiếm theo từ khóa
@@ -167,7 +184,7 @@ export default function Notes({ theme }) {
     }
   };
 
-  // Xóa ghi chú
+  // --- TÍNH NĂNG 5: HÀM XÓA GHI CHÚ VÀ LƯU STATE DELETED NOTE ---
   const handleDeleteNote = async (noteId) => {
     const fileSlug = CATEGORY_FILE_MAP[selectedFilter] || 'hoc-tap';
 
@@ -177,6 +194,8 @@ export default function Notes({ theme }) {
       });
 
       if (res.ok) {
+        // Lưu trạng thái ghi chú vừa bị xóa để kích hoạt useEffect
+        setDeletedNote(deletingNote || { id: noteId });
         setDeletingNote(null);
         fetchNotes();
         window.dispatchEvent(new Event('notesChanged'));
@@ -222,8 +241,33 @@ export default function Notes({ theme }) {
   };
 
   return (
-    <div style={{ maxWidth: '900px', margin: '0 auto', fontFamily: 'sans-serif' }}>
+    <div style={{ maxWidth: '900px', margin: '0 auto', fontFamily: 'sans-serif', position: 'relative' }}>
       
+      {/* --- TÍNH NĂNG 5: TOAST MESSAGE GÓC MÀN HÌNH --- */}
+      {toastMessage && (
+        <div style={{
+          position: 'fixed',
+          bottom: '24px',
+          right: '24px',
+          backgroundColor: '#10b981',
+          color: '#ffffff',
+          padding: '12px 20px',
+          borderRadius: '10px',
+          boxShadow: '0 4px 14px rgba(0,0,0,0.25)',
+          fontSize: '14px',
+          fontWeight: '600',
+          zIndex: 2000,
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px'
+        }}>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="20 6 9 17 4 12" />
+          </svg>
+          <span>{toastMessage}</span>
+        </div>
+      )}
+
       {/* 1. DANH MỤC GHI CHÚ */}
       <div style={{
         backgroundColor: isDark ? '#1e293b' : '#FAF9F6',
