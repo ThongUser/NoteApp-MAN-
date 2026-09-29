@@ -560,7 +560,7 @@ export default function Notes({ theme }) {
       {totalPages > 1 && (
         <div style={{
           display: 'flex',
-          justify: 'center',
+          justifyContent: 'center',
           alignItems: 'center',
           gap: '8px',
           marginTop: '28px',
