@@ -6,6 +6,7 @@ function PrivateNotes({ theme }) {
   // Quản lý trạng thái khóa mật khẩu
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [passwordInput, setPasswordInput] = useState('');
+  const [authenticatedPassword, setAuthenticatedPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
@@ -57,7 +58,7 @@ function PrivateNotes({ theme }) {
     // Ghép vào URL fetch
     const url = `http://localhost:5000/api/private/notes?${queryParams}`;
 
-    fetch(url)
+    fetch(url, { headers: { 'x-private-password': authenticatedPassword } })
       .then((response) => {
         if (!response.ok) throw new Error('Không thể tải ghi chú riêng tư');
         return response.json();
@@ -67,7 +68,7 @@ function PrivateNotes({ theme }) {
         setNotes(noteList);
       })
       .catch((error) => setErrorMsg(error.message));
-  }, [isAuthenticated, selectedFilter, searchTerm, page, limit]);
+  }, [isAuthenticated, authenticatedPassword, selectedFilter, searchTerm, page, limit]);
 
   // Xử lý kiểm tra mật khẩu
   const handleUnlock = async (e) => {
@@ -81,6 +82,7 @@ function PrivateNotes({ theme }) {
 
       if (!response.ok) throw new Error('Mật khẩu không đúng! Vui lòng thử lại.');
       setIsAuthenticated(true);
+      setAuthenticatedPassword(passwordInput);
       setErrorMsg('');
       setPasswordInput('');
     } catch (error) {
@@ -101,7 +103,10 @@ function PrivateNotes({ theme }) {
         : 'http://localhost:5000/api/private/notes';
       const response = await fetch(endpoint, {
         method: editingId ? 'PUT' : 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'x-private-password': authenticatedPassword
+        },
         body: JSON.stringify({
           title: title.trim(),
           content: content.trim(),
@@ -126,7 +131,8 @@ function PrivateNotes({ theme }) {
   const handleDelete = async (id) => {
     try {
       const response = await fetch(`http://localhost:5000/api/private/notes/${id}`, {
-        method: 'DELETE'
+        method: 'DELETE',
+        headers: { 'x-private-password': authenticatedPassword }
       });
       if (!response.ok) throw new Error('Không thể xóa ghi chú riêng tư.');
       setNotes((currentNotes) => currentNotes.filter((note) => note.id !== id));
@@ -317,7 +323,12 @@ function PrivateNotes({ theme }) {
             🔒 Ghi chú riêng tư
           </h2>
         <button 
-          onClick={() => setIsAuthenticated(false)}
+          onClick={() => {
+            setIsAuthenticated(false);
+            setAuthenticatedPassword('');
+            setNotes([]);
+            handleCancelEdit();
+          }}
           style={{
             backgroundColor: isDark ? '#334155' : '#ffffff',
             border: isDark ? '1px solid #475569' : '1px solid #e2e8f0',

@@ -3,7 +3,11 @@ import { useState, useEffect } from 'react';
 function Settings({ currentTheme }) {
   const [name, setName] = useState('binh');
   const [selectedTheme, setSelectedTheme] = useState('light');
-  const [password, setPassword] = useState('123456');
+  const [password, setPassword] = useState('');
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [passwordInput, setPasswordInput] = useState('');
+  const [isPasswordAuthenticated, setIsPasswordAuthenticated] = useState(false);
+  const [passwordError, setPasswordError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [saveMessage, setSaveMessage] = useState('');
 
@@ -16,11 +20,9 @@ function Settings({ currentTheme }) {
         const nextName = profile.displayName || profile.name || 'Bạn';
         setName(nextName);
         setSelectedTheme(profile.theme || 'light');
-        setPassword(profile.password || '');
         localStorage.setItem('user_profile', JSON.stringify({
           displayName: nextName,
-          theme: profile.theme || 'light',
-          password: profile.password || ''
+          theme: profile.theme || 'light'
         }));
       } catch {
         const savedProfile = localStorage.getItem('user_profile');
@@ -29,7 +31,6 @@ function Settings({ currentTheme }) {
             const parsed = JSON.parse(savedProfile);
             if (parsed.displayName || parsed.name) setName(parsed.displayName || parsed.name);
             if (parsed.theme) setSelectedTheme(parsed.theme);
-            if (parsed.password) setPassword(parsed.password);
           } catch {
             // Ignore malformed local profile data and keep defaults.
           }
@@ -41,20 +42,30 @@ function Settings({ currentTheme }) {
   }, []);
 
   const handleSave = async () => {
+    if (isPasswordAuthenticated && !password.trim()) {
+      setSaveMessage('Mật khẩu không được để trống.');
+      return;
+    }
+
     const profileData = {
       displayName: name,
-      theme: selectedTheme,
-      password
+      theme: selectedTheme
     };
+
+    if (isPasswordAuthenticated) profileData.password = password;
 
     try {
       const response = await fetch('http://localhost:5000/api/profile', {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(isPasswordAuthenticated ? { 'x-private-password': currentPassword } : {})
+        },
         body: JSON.stringify(profileData)
       });
       if (!response.ok) throw new Error('Không thể lưu thông tin.');
       localStorage.setItem('user_profile', JSON.stringify(profileData));
+      if (isPasswordAuthenticated) setCurrentPassword(password);
       setSaveMessage('Đã lưu thông tin!');
     } catch (error) {
       setSaveMessage(error.message || 'Không thể lưu thông tin.');
@@ -62,6 +73,25 @@ function Settings({ currentTheme }) {
     }
 
     window.dispatchEvent(new CustomEvent('profileUpdated', { detail: profileData }));
+  };
+
+  const handlePasswordUnlock = async (event) => {
+    event.preventDefault();
+    try {
+      const response = await fetch('http://localhost:5000/api/private/auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: passwordInput })
+      });
+      if (!response.ok) throw new Error('Mật khẩu không đúng.');
+      setCurrentPassword(passwordInput);
+      setPassword(passwordInput);
+      setPasswordInput('');
+      setPasswordError('');
+      setIsPasswordAuthenticated(true);
+    } catch (error) {
+      setPasswordError(error.message || 'Không thể xác thực mật khẩu.');
+    }
   };
 
   // Dùng currentTheme từ App để giữ màu sắc khung Settings không bị lệch màu trước khi lưu
@@ -121,7 +151,32 @@ function Settings({ currentTheme }) {
       {/* Mật khẩu riêng tư */}
       <div style={{ marginBottom: '24px' }}>
         <label style={{ display: 'block', marginBottom: '6px', fontWeight: '600' }}>Mật khẩu riêng tư:</label>
-        <div style={{
+        {!isPasswordAuthenticated ? (
+          <form onSubmit={handlePasswordUnlock}>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <input
+                type="password"
+                placeholder="Nhập mật khẩu hiện tại"
+                value={passwordInput}
+                onChange={(e) => setPasswordInput(e.target.value)}
+                style={{
+                  padding: '8px 12px',
+                  borderRadius: '6px',
+                  border: isDark ? '1px solid #475569' : '1px solid #cbd5e1',
+                  backgroundColor: isDark ? '#334155' : '#ffffff',
+                  color: isDark ? '#ffffff' : '#000000',
+                  flex: 1,
+                  minWidth: 0
+                }}
+              />
+              <button type="submit" style={{ padding: '8px 12px', backgroundColor: '#0284c7', color: '#ffffff', border: 'none', borderRadius: '6px', fontWeight: '600', cursor: 'pointer' }}>
+                Xác thực
+              </button>
+            </div>
+            {passwordError && <div style={{ color: '#dc2626', fontSize: '13px', marginTop: '6px' }}>{passwordError}</div>}
+          </form>
+        ) : (
+          <div style={{
           display: 'flex',
           alignItems: 'center',
           border: isDark ? '1px solid #475569' : '1px solid #cbd5e1',
@@ -158,7 +213,8 @@ function Settings({ currentTheme }) {
               {!showPassword && <line x1="1" y1="1" x2="23" y2="23" stroke={isDark ? '#ffffff' : '#000000'} strokeWidth="2" />}
             </svg>
           </button>
-        </div>
+          </div>
+        )}
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>

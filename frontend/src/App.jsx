@@ -20,8 +20,7 @@ function App() {
       }
       localStorage.setItem('user_profile', JSON.stringify({
         displayName: profile.displayName || profile.name || 'Bạn',
-        theme: profile.theme || 'light',
-        password: profile.password || ''
+        theme: profile.theme || 'light'
       }));
     };
 

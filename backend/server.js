@@ -29,7 +29,8 @@ const safeReadJSON = (filePath, defaultData = []) => {
 app.get('/api/profile', (req, res) => {
   try {
     const profile = safeReadJSON(profilePath, {});
-    res.json(profile);
+    const { password, ...publicProfile } = profile;
+    res.json(publicProfile);
   } catch (error) {
     res.status(500).json({ message: "Lỗi đọc file" });
   }
@@ -38,7 +39,17 @@ app.get('/api/profile', (req, res) => {
 // API 2: Cập nhật Profile
 app.put('/api/profile', (req, res) => {
   try {
-    const newProfile = req.body;
+    const profile = safeReadJSON(profilePath, {});
+    const changingPassword = req.body.password !== undefined && req.body.password !== profile.password;
+    if (changingPassword && profile.password !== req.headers['x-private-password']) {
+      return res.status(401).json({ message: "Cần xác thực mật khẩu riêng tư" });
+    }
+
+    const newProfile = {
+      ...profile,
+      ...req.body,
+      password: req.body.password || profile.password
+    };
     fs.writeFileSync(profilePath, JSON.stringify(newProfile, null, 2), 'utf8');
     res.json({ success: true, message: "Đã cập nhật Profile" });
   } catch (error) {
@@ -229,8 +240,16 @@ app.post('/api/private/auth', (req, res) => {
   }
 });
 
+const requirePrivatePassword = (req, res, next) => {
+  const profile = safeReadJSON(profilePath, {});
+  if (!profile.password || profile.password !== req.headers['x-private-password']) {
+    return res.status(401).json({ message: "Cần xác thực mật khẩu riêng tư" });
+  }
+  next();
+};
+
 // API Lấy danh sách Ghi chú riêng tư
-app.get('/api/private/notes', (req, res) => {
+app.get('/api/private/notes', requirePrivatePassword, (req, res) => {
   try {
     const notes = safeReadJSON(privateNotesFile, []);
     res.json(notes);
@@ -269,7 +288,7 @@ app.post('/api/notes/:topic/:id/move-private', (req, res) => {
 });
 
 // API Thêm Ghi chú riêng tư
-app.post('/api/private/notes', (req, res) => {
+app.post('/api/private/notes', requirePrivatePassword, (req, res) => {
   try {
     let notes = safeReadJSON(privateNotesFile, []);
     const newNote = {
@@ -289,7 +308,7 @@ app.post('/api/private/notes', (req, res) => {
 });
 
 // Cập nhật ghi chú riêng tư
-app.put('/api/private/notes/:id', (req, res) => {
+app.put('/api/private/notes/:id', requirePrivatePassword, (req, res) => {
   try {
     const notes = safeReadJSON(privateNotesFile, []);
     const note = notes.find((item) => item.id === req.params.id);
@@ -309,7 +328,7 @@ app.put('/api/private/notes/:id', (req, res) => {
 });
 
 // Xóa ghi chú riêng tư
-app.delete('/api/private/notes/:id', (req, res) => {
+app.delete('/api/private/notes/:id', requirePrivatePassword, (req, res) => {
   try {
     const notes = safeReadJSON(privateNotesFile, []);
     const noteIndex = notes.findIndex((note) => note.id === req.params.id);
