@@ -29,11 +29,35 @@
     "updatedAt": "2026-09-28T17:07:38.482Z"
   },
   {
-    "id": "1790567559540",
-    "title": "sgdfg",
-    "content": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+    "id": "1790774633657",
+    "title": "Giải tích",
+    "content": "Ôn tập lại toàn bộ kiến thức chương 3 môn Giải tích để chuẩn bị cho bài kiểm tra giữa kỳ vào thứ Sáu tuần sau.",
     "category": "Học tập",
-    "createdAt": "2026-09-28T03:52:39.540Z",
-    "updatedAt": "2026-09-28T03:52:39.540Z"
+    "createdAt": "2026-09-30T13:23:53.657Z",
+    "updatedAt": "2026-09-30T13:23:53.657Z"
+  },
+  {
+    "id": "1790774649797",
+    "title": "Thí nghiệm",
+    "content": "Đọc trước tài liệu hướng dẫn thực hành phòng thí nghiệm Hóa học hữu cơ phần phản ứng xà phòng hóa.",
+    "category": "Học tập",
+    "createdAt": "2026-09-30T13:24:09.797Z",
+    "updatedAt": "2026-09-30T13:24:09.797Z"
+  },
+  {
+    "id": "1790774672599",
+    "title": "Bài tập Markerting",
+    "content": "Hoàn thành bài tập nhóm môn Marketing: Nghiên cứu hành vi người tiêu dùng thế hệ Z đối với các sản phẩm xanh.",
+    "category": "Học tập",
+    "createdAt": "2026-09-30T13:24:32.599Z",
+    "updatedAt": "2026-09-30T13:24:32.599Z"
+  },
+  {
+    "id": "1790774688138",
+    "title": "Anh Văn",
+    "content": "Tìm kiếm thêm tài liệu tham khảo bằng tiếng Anh về cấu trúc dữ liệu và giải thuật trên các trang mạng uy tín.",
+    "category": "Học tập",
+    "createdAt": "2026-09-30T13:24:48.138Z",
+    "updatedAt": "2026-09-30T13:24:48.138Z"
   }
 ]

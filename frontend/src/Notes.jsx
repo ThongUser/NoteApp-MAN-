@@ -15,6 +15,7 @@ export default function Notes({ theme }) {
   const [loading, setLoading] = useState(false);
   const [viewingNote, setViewingNote] = useState(null);
   const [deletingNote, setDeletingNote] = useState(null);
+  const [movingNote, setMovingNote] = useState(null);
 
   // --- TÍNH NĂNG 5: STATE LƯU TRẠNG THÁI XÓA & TOAST MESSAGE ---
   const [deletedNote, setDeletedNote] = useState(null);
@@ -221,6 +222,7 @@ export default function Notes({ theme }) {
 
       fetchNotes();
       window.dispatchEvent(new Event('notesChanged'));
+      setMovingNote(null);
     } catch (err) {
       console.error('Lỗi chuyển ghi chú sang riêng tư:', err);
       alert(err.message);
@@ -553,7 +555,7 @@ export default function Notes({ theme }) {
 
                     <button
                       type="button"
-                      onClick={() => handleMoveToPrivate(note)}
+                      onClick={() => setMovingNote(note)}
                       title="Chuyển vào ghi chú riêng tư"
                       style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '2px', color: isDark ? '#94a3b8' : '#475569' }}
                     >
@@ -746,6 +748,53 @@ export default function Notes({ theme }) {
                 }}
               >
                 Xóa ghi chú
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL XÁC NHẬN CHUYỂN SANG RIÊNG TƯ */}
+      {movingNote && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          backgroundColor: 'rgba(15, 23, 42, 0.65)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          zIndex: 1002, padding: '20px'
+        }}>
+          <div style={{
+            backgroundColor: isDark ? '#1e293b' : '#ffffff',
+            padding: '24px', borderRadius: '16px', maxWidth: '420px', width: '100%',
+            color: isDark ? '#f8fafc' : '#0f172a',
+            border: isDark ? '1px solid #334155' : '1px solid #e2e8f0',
+            boxShadow: '0 10px 25px rgba(0,0,0,0.2)'
+          }}>
+            <h3 style={{ margin: '0 0 10px', fontSize: '20px' }}>Xác nhận chuyển ghi chú</h3>
+            <p style={{ margin: 0, color: isDark ? '#cbd5e1' : '#475569', lineHeight: '1.5' }}>
+              Ghi chú này sẽ bị xóa khỏi danh sách ghi chú hiện tại. Bạn có chắc chắn muốn chuyển ghi chú này thành ghi chú riêng tư không ? 
+            </p>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '24px' }}>
+              <button
+                type="button"
+                onClick={() => setMovingNote(null)}
+                style={{
+                  padding: '9px 18px',
+                  backgroundColor: isDark ? '#334155' : '#e2e8f0',
+                  color: isDark ? '#f8fafc' : '#475569',
+                  border: 'none', borderRadius: '8px', fontWeight: '600', cursor: 'pointer'
+                }}
+              >
+                Hủy
+              </button>
+              <button
+                type="button"
+                onClick={() => handleMoveToPrivate(movingNote)}
+                style={{
+                  padding: '9px 18px', backgroundColor: '#0284c7', color: '#ffffff',
+                  border: 'none', borderRadius: '8px', fontWeight: '600', cursor: 'pointer'
+                }}
+              >
+                Chuyển ghi chú
               </button>
             </div>
           </div>

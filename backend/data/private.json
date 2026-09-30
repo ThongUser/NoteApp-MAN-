@@ -32,59 +32,139 @@
     "updatedAt": "2026-09-28T17:07:12.568Z"
   },
   {
-    "id": "1790614978219",
-    "title": "1233",
-    "content": "qưeqwe",
-    "category": "Cá nhân",
-    "createdAt": "2026-09-28T17:02:58.219Z",
-    "updatedAt": "2026-09-28T17:02:58.219Z"
+    "id": "1790774889869",
+    "title": "Điểm số",
+    "content": "Nhật ký tự nhận xét kết quả học tập tháng này: Điểm số môn Toán chưa đạt kỳ vọng do chủ quan ở phần hình học không gian.",
+    "category": "Học tập",
+    "createdAt": "2026-09-30T13:28:09.869Z",
+    "updatedAt": "2026-09-30T13:28:09.869Z"
   },
   {
-    "id": "1790614984146",
-    "title": "132213",
-    "content": "qewqewqe",
+    "id": "1790774915674",
+    "title": "Ý tưởng nghiên cứu",
+    "content": "Ý tưởng đề tài nghiên cứu khoa học mật về ứng dụng AI trong chẩn đoán y tế, tránh chia sẻ sớm để không bị trùng lặp.",
+    "category": "Học tập",
+    "createdAt": "2026-09-30T13:28:35.674Z",
+    "updatedAt": "2026-09-30T13:28:35.674Z"
+  },
+  {
+    "id": "1790774945693",
+    "title": "Olympic",
+    "content": "Mã số đăng ký tham gia cuộc thi Olympic Tin học sinh viên toàn quốc (cần bảo mật để tránh bị mạo danh).",
+    "category": "Học tập",
+    "createdAt": "2026-09-30T13:29:05.693Z",
+    "updatedAt": "2026-09-30T13:29:05.693Z"
+  },
+  {
+    "id": "1790774972205",
+    "title": "Tài khoản quản trị",
+    "content": "Thông tin tài khoản quản trị hệ thống (Admin) và mã thiết lập server thử nghiệm: admin_staging / Pass@Dev_2026!.",
     "category": "Công việc",
-    "createdAt": "2026-09-28T17:03:04.146Z",
-    "updatedAt": "2026-09-28T17:03:04.146Z"
+    "createdAt": "2026-09-30T13:29:32.205Z",
+    "updatedAt": "2026-09-30T13:29:32.205Z"
   },
   {
-    "id": "1790689033049",
-    "title": "123",
-    "content": "12313",
-    "category": "Học tập",
-    "createdAt": "2026-09-29T13:37:13.049Z",
-    "updatedAt": "2026-09-29T13:37:13.049Z"
+    "id": "1790774989253",
+    "title": "Lương",
+    "content": "Ghi chú mức lương thỏa thuận, phần trăm hoa hồng dự án và điều khoản thưởng KPI cá nhân trong hợp đồng thử việc.",
+    "category": "Công việc",
+    "createdAt": "2026-09-30T13:29:49.253Z",
+    "updatedAt": "2026-09-30T13:29:49.253Z"
   },
   {
-    "id": "1790689035034",
-    "title": "132123",
-    "content": "123123",
-    "category": "Học tập",
-    "createdAt": "2026-09-29T13:37:15.034Z",
-    "updatedAt": "2026-09-29T13:37:15.034Z"
+    "id": "1790774999524",
+    "title": "Đánh giá",
+    "content": "Đánh giá bí mật về hiệu suất làm việc của từng thành viên trong nhóm để chuẩn bị cho kỳ xét duyệt nhân sự cuối năm.",
+    "category": "Công việc",
+    "createdAt": "2026-09-30T13:29:59.524Z",
+    "updatedAt": "2026-09-30T13:29:59.524Z"
   },
   {
-    "id": "1790689036849",
-    "title": "13123",
-    "content": "13212",
-    "category": "Học tập",
-    "createdAt": "2026-09-29T13:37:16.849Z",
-    "updatedAt": "2026-09-29T13:37:16.849Z"
+    "id": "1790775008710",
+    "title": "Ý tưởng",
+    "content": "Ý tưởng sản phẩm mới chuẩn bị trình bày trong cuộc họp cổ đông, tuyệt đối không lưu file trên máy tính chung của công ty.",
+    "category": "Công việc",
+    "createdAt": "2026-09-30T13:30:08.710Z",
+    "updatedAt": "2026-09-30T13:30:08.710Z"
   },
   {
-    "id": "1790689038953",
-    "title": "123123",
-    "content": "123123",
-    "category": "Học tập",
-    "createdAt": "2026-09-29T13:37:18.953Z",
-    "updatedAt": "2026-09-29T13:37:18.953Z"
+    "id": "1790775026050",
+    "title": "Thông tin cá nhân",
+    "content": "Danh sách số điện thoại cá nhân và email trực tiếp của các khách hàng VIP thuộc dự án bất động sản cao cấp.",
+    "category": "Công việc",
+    "createdAt": "2026-09-30T13:30:26.050Z",
+    "updatedAt": "2026-09-30T13:30:26.050Z"
   },
   {
-    "id": "1790689041153",
-    "title": "13123",
-    "content": "1323123",
+    "id": "1790775050071",
+    "title": "Test phân trang",
+    "content": "Đã phân trang.",
+    "category": "Công việc",
+    "createdAt": "2026-09-30T13:30:50.071Z",
+    "updatedAt": "2026-09-30T13:30:50.071Z"
+  },
+  {
+    "id": "1790775077522",
+    "title": "Thông tin tài khoản",
+    "content": "Tài khoản và mật khẩu đăng nhập cổng thông tin sinh viên để tra cứu điểm thi: SV_2026_TrầnVănA / Matkhau_BaoMat99#.",
     "category": "Học tập",
-    "createdAt": "2026-09-29T13:37:21.153Z",
-    "updatedAt": "2026-09-29T13:37:21.153Z"
+    "createdAt": "2026-09-30T13:31:17.522Z",
+    "updatedAt": "2026-09-30T13:31:17.522Z"
+  },
+  {
+    "id": "1790775089753",
+    "title": "Test phân trang",
+    "content": "Phân trang thành công.",
+    "category": "Học tập",
+    "createdAt": "2026-09-30T13:31:29.753Z",
+    "updatedAt": "2026-09-30T13:33:28.952Z"
+  },
+  {
+    "id": "1790775117451",
+    "title": "Thông tin thẻ tín dụng",
+    "content": "Thông tin số thẻ tín dụng, ngày hết hạn và mã bí mật CVV/CVC (vui lòng ghi nhớ, xóa ngay sau khi hệ thống lưu trữ mã hóa).",
+    "category": "Cá nhân",
+    "createdAt": "2026-09-30T13:31:57.451Z",
+    "updatedAt": "2026-09-30T13:31:57.451Z"
+  },
+  {
+    "id": "1790775126015",
+    "title": "Mã pin",
+    "content": "Mã PIN khóa cửa căn hộ chung cư và mật khẩu tài khoản camera an ninh giám sát phòng khách.",
+    "category": "Cá nhân",
+    "createdAt": "2026-09-30T13:32:06.015Z",
+    "updatedAt": "2026-09-30T13:32:06.015Z"
+  },
+  {
+    "id": "1790775137295",
+    "title": "Nợ",
+    "content": "Danh sách các khoản nợ cá nhân, tiền vay mua nhà và lịch trình thanh toán chi tiết cho ngân hàng mỗi tháng.",
+    "category": "Cá nhân",
+    "createdAt": "2026-09-30T13:32:17.295Z",
+    "updatedAt": "2026-09-30T13:32:17.295Z"
+  },
+  {
+    "id": "1790775149812",
+    "title": "Sức khỏe",
+    "content": "Nhật ký theo dõi chỉ số sức khỏe, cân nặng, huyết áp và kết quả xét nghiệm tổng quát tại bệnh viện tuần trước.",
+    "category": "Cá nhân",
+    "createdAt": "2026-09-30T13:32:29.812Z",
+    "updatedAt": "2026-09-30T13:32:29.812Z"
+  },
+  {
+    "id": "1790775184075",
+    "title": "Sinh nhật",
+    "content": "Kế hoạch chuẩn bị quà tặng và địa điểm tổ chức tiệc sinh nhật bất ngờ cho người yêu (giữ bí mật đến phút chót).",
+    "category": "Cá nhân",
+    "createdAt": "2026-09-30T13:33:04.075Z",
+    "updatedAt": "2026-09-30T13:33:04.075Z"
+  },
+  {
+    "id": "1790775198617",
+    "title": "Test phân trang",
+    "content": "Phân trang thành công.",
+    "category": "Cá nhân",
+    "createdAt": "2026-09-30T13:33:18.617Z",
+    "updatedAt": "2026-09-30T13:33:18.617Z"
   }
 ]

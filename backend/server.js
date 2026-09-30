@@ -317,6 +317,14 @@ app.delete('/api/private/notes/:id', (req, res) => {
       return res.status(404).json({ message: "Không tìm thấy ghi chú riêng tư" });
     }
 
+    const deletedNote = { ...notes[noteIndex], deletedAt: new Date().toISOString() };
+    const deletedLogs = JSON.parse(fs.readFileSync(deletedLogsPath, 'utf8'));
+    if (!Array.isArray(deletedLogs)) {
+      throw new Error('Tệp deleted_logs.json phải chứa một mảng');
+    }
+    deletedLogs.push(deletedNote);
+    fs.writeFileSync(deletedLogsPath, JSON.stringify(deletedLogs, null, 2), 'utf8');
+
     const remainingNotes = notes.filter((_, index) => index !== noteIndex);
     fs.writeFileSync(privateNotesFile, JSON.stringify(remainingNotes, null, 2), 'utf8');
     res.json({ success: true, message: "Đã xóa ghi chú riêng tư" });

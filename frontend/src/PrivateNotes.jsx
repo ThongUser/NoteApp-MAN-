@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 function PrivateNotes({ theme }) {
   const [notes, setNotes] = useState([]);
@@ -18,6 +18,8 @@ function PrivateNotes({ theme }) {
   const [editingId, setEditingId] = useState(null);
   const [viewingNote, setViewingNote] = useState(null);
   const [deletingNote, setDeletingNote] = useState(null);
+  const [toastMessage, setToastMessage] = useState('');
+  const toastTimer = useRef(null);
 
   // --- STATE PHÂN TRANG ---
   const [page, setPage] = useState(1);
@@ -25,6 +27,10 @@ function PrivateNotes({ theme }) {
 
   const categories = ['Học tập', 'Công việc', 'Cá nhân'];
   const isDark = theme === 'dark';
+
+  useEffect(() => () => {
+    if (toastTimer.current) clearTimeout(toastTimer.current);
+  }, []);
 
   const formatDate = (dateStr) => {
     if (!dateStr) return '';
@@ -124,6 +130,12 @@ function PrivateNotes({ theme }) {
       });
       if (!response.ok) throw new Error('Không thể xóa ghi chú riêng tư.');
       setNotes((currentNotes) => currentNotes.filter((note) => note.id !== id));
+      setToastMessage('Đã xóa ghi chú riêng tư thành công');
+      if (toastTimer.current) clearTimeout(toastTimer.current);
+      toastTimer.current = setTimeout(() => {
+        setToastMessage('');
+        toastTimer.current = null;
+      }, 3000);
       setDeletingNote(null);
       window.dispatchEvent(new Event('notesChanged'));
     } catch (error) {
@@ -265,6 +277,34 @@ function PrivateNotes({ theme }) {
   // --- 🔓 MÀN HÌNH GHI CHÚ RIÊNG TƯ ---
   return (
     <div style={{ maxWidth: '900px', margin: '0 auto', fontFamily: 'sans-serif' }}>
+      {toastMessage && (
+        <div
+          role="status"
+          aria-live="polite"
+          style={{
+            position: 'fixed',
+            bottom: '24px',
+            right: '24px',
+            backgroundColor: '#10b981',
+            color: '#ffffff',
+            padding: '12px 20px',
+            borderRadius: '10px',
+            boxShadow: '0 4px 14px rgba(0,0,0,0.25)',
+            fontSize: '14px',
+            fontWeight: '600',
+            zIndex: 2000,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px'
+          }}
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="20 6 9 17 4 12" />
+          </svg>
+          <span>{toastMessage}</span>
+        </div>
+      )}
+
       <div style={{
         backgroundColor: isDark ? '#1e293b' : '#FAF9F6',
         padding: '20px',

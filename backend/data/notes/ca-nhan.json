@@ -19,5 +19,37 @@
     "content": "Thay dầu máy và kiểm tra phanh xe",
     "createdAt": "2026-09-22T15:18:21.217Z",
     "updatedAt": "2026-09-22T15:18:21.217Z"
+  },
+  {
+    "id": "1790774777671",
+    "title": "Đi chợ",
+    "content": "Đi siêu thị mua thực phẩm tươi sống, rau củ quả và nhu yếu phẩm cần thiết cho gia đình dùng trong tuần.",
+    "category": "Cá nhân",
+    "createdAt": "2026-09-30T13:26:17.671Z",
+    "updatedAt": "2026-09-30T13:26:17.671Z"
+  },
+  {
+    "id": "1790774788604",
+    "title": "Khám răng",
+    "content": "Đặt lịch hẹn khám răng định kỳ tại phòng khám nha khoa gần nhà vào lúc 9h30 sáng thứ Bảy.",
+    "category": "Cá nhân",
+    "createdAt": "2026-09-30T13:26:28.604Z",
+    "updatedAt": "2026-09-30T13:26:28.604Z"
+  },
+  {
+    "id": "1790774802397",
+    "title": "Tập thể dục",
+    "content": "Tập thể dục chạy bộ khoảng 5km tại công viên hoặc rèn luyện thể lực tại phòng gym trong vòng 45 phút.",
+    "category": "Cá nhân",
+    "createdAt": "2026-09-30T13:26:42.397Z",
+    "updatedAt": "2026-09-30T13:26:42.397Z"
+  },
+  {
+    "id": "1790774815375",
+    "title": "Thanh toán hóa đơn",
+    "content": "Thanh toán các hóa đơn chi phí sinh hoạt hàng tháng bao gồm tiền điện, tiền nước và cước internet tốc độ cao.",
+    "category": "Cá nhân",
+    "createdAt": "2026-09-30T13:26:55.375Z",
+    "updatedAt": "2026-09-30T13:26:55.375Z"
   }
 ]

@@ -26,5 +26,37 @@
     "content": "Thảo luận yêu cầu kỹ thuật với team Product vào sáng thứ 4",
     "createdAt": "2025-09-22T15:17:37.659Z",
     "updatedAt": "2025-09-22T15:17:37.659Z"
+  },
+  {
+    "id": "1790774706104",
+    "title": "Chuẩn bị slide",
+    "content": "Chuẩn bị slide thuyết trình và tài liệu in ấn cho cuộc họp thảo luận với đối tác chiến lược vào sáng mai.",
+    "category": "Công việc",
+    "createdAt": "2026-09-30T13:25:06.104Z",
+    "updatedAt": "2026-09-30T13:25:06.104Z"
+  },
+  {
+    "id": "1790774730744",
+    "title": "Kiểm tra Email",
+    "content": "Kiểm tra và phản hồi lại toàn bộ email của khách hàng còn tồn đọng trong hộp thư đến từ đầu tuần.",
+    "category": "Công việc",
+    "createdAt": "2026-09-30T13:25:30.744Z",
+    "updatedAt": "2026-09-30T13:25:30.744Z"
+  },
+  {
+    "id": "1790774742408",
+    "title": "Phỏng vấn",
+    "content": "Lên lịch hẹn phỏng vấn ứng viên cho vị trí lập trình viên Front-end vào khung giờ chiều thứ Năm.",
+    "category": "Công việc",
+    "createdAt": "2026-09-30T13:25:42.408Z",
+    "updatedAt": "2026-09-30T13:25:42.408Z"
+  },
+  {
+    "id": "1790774761965",
+    "title": "Hợp đồng",
+    "content": "Rà soát lại các điều khoản hợp đồng kinh tế ký kết với nhà cung ứng vật tư thiết bị văn phòng.",
+    "category": "Công việc",
+    "createdAt": "2026-09-30T13:26:01.965Z",
+    "updatedAt": "2026-09-30T13:26:01.965Z"
   }
 ]
