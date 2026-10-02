@@ -6,6 +6,7 @@ import StatsWrapper from './Stats'; // 👈 Import StatsWrapper
 
 function App() {
   const [activeTab, setActiveTab] = useState('regular');
+  const [isMenuCollapsed, setIsMenuCollapsed] = useState(false);
   const [displayName, setDisplayName] = useState('Bạn');
   const [theme, setTheme] = useState('light');
 
@@ -70,15 +71,39 @@ function App() {
       
       {/* MENU BÊN TRÁI */}
       <div style={{
-        width: '220px',
+        width: isMenuCollapsed ? '64px' : '220px',
+        flexShrink: 0,
         backgroundColor: isDark ? '#1e293b' : '#e0f2fe',
-        padding: '20px',
+        padding: isMenuCollapsed ? '20px 10px' : '20px',
         borderRight: isDark ? '1px solid #334155' : '1px solid #bae6fd',
-        transition: 'all 0.3s ease'
+        transition: 'width 0.3s ease, padding 0.3s ease'
       }}>
-        
+        <button
+          type="button"
+          onClick={() => setIsMenuCollapsed(!isMenuCollapsed)}
+          aria-label={isMenuCollapsed ? 'Mở rộng menu' : 'Thu gọn menu'}
+          aria-expanded={!isMenuCollapsed}
+          aria-controls="sidebar-navigation"
+          title={isMenuCollapsed ? 'Mở rộng menu' : 'Thu gọn menu'}
+          style={{
+            display: 'block',
+            width: '100%',
+            marginBottom: '12px',
+            padding: '6px',
+            border: 'none',
+            borderRadius: '6px',
+            background: 'transparent',
+            color: isDark ? '#cbd5e1' : '#0369a1',
+            textAlign: isMenuCollapsed ? 'center' : 'right',
+            fontSize: '18px',
+            cursor: 'pointer'
+          }}
+        >
+          {isMenuCollapsed ? '›' : '‹'}
+        </button>
+
         {/* XIN CHÀO */}
-        <div style={{
+        {!isMenuCollapsed && <div style={{
           marginBottom: '16px',
           fontSize: '14px',
           color: isDark ? '#f8fafc' : '#1e293b',
@@ -92,77 +117,85 @@ function App() {
         }}>
           <span>👋</span>
           <span>Xin chào, <strong style={{ color: isDark ? '#38bdf8' : '#0284c7' }}>{displayName}</strong>!</span>
-        </div>
+        </div>}
 
-        <h2 style={{ margin: '0 0 16px 0', color: isDark ? '#38bdf8' : '#0369a1', fontSize: '20px', fontWeight: '700' }}>
+        {!isMenuCollapsed && <h2 style={{ margin: '0 0 16px 0', color: isDark ? '#38bdf8' : '#0369a1', fontSize: '20px', fontWeight: '700' }}>
           Menu
-        </h2>
+        </h2>}
 
         {/* CÁC NÚT BẤM MENU */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        <div id="sidebar-navigation" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           <button 
             onClick={() => setActiveTab('regular')}
+            aria-label="Trang chủ"
+            title="Trang chủ"
             style={{
-              padding: '10px 16px',
+              padding: isMenuCollapsed ? '10px 0' : '10px 16px',
               backgroundColor: activeTab === 'regular' ? '#0284c7' : (isDark ? '#334155' : '#ffffff'),
               color: activeTab === 'regular' ? '#ffffff' : (isDark ? '#f8fafc' : '#0f172a'),
               border: isDark ? '1px solid #475569' : '1px solid #cbd5e1',
               borderRadius: '8px',
-              textAlign: 'left',
+              textAlign: isMenuCollapsed ? 'center' : 'left',
               fontWeight: '600',
               cursor: 'pointer'
             }}
           >
-            Trang chủ
+            {isMenuCollapsed ? '⌂' : 'Trang chủ'}
           </button>
 
           <button 
             onClick={() => setActiveTab('private')}
+            aria-label="Ghi chú riêng tư"
+            title="Ghi chú riêng tư"
             style={{
-              padding: '10px 16px',
+              padding: isMenuCollapsed ? '10px 0' : '10px 16px',
               backgroundColor: activeTab === 'private' ? '#0284c7' : (isDark ? '#334155' : '#ffffff'),
               color: activeTab === 'private' ? '#ffffff' : (isDark ? '#f8fafc' : '#0f172a'),
               border: isDark ? '1px solid #475569' : '1px solid #cbd5e1',
               borderRadius: '8px',
-              textAlign: 'left',
+              textAlign: isMenuCollapsed ? 'center' : 'left',
               fontWeight: '600',
               cursor: 'pointer'
             }}
           >
-            Ghi chú riêng tư
+            {isMenuCollapsed ? '▣' : 'Ghi chú riêng tư'}
           </button>
 
           {/* 🌟 NÚT THỐNG KÊ MỚI 🌟 */}
           <button 
             onClick={() => setActiveTab('stats')}
+            aria-label="Thống kê"
+            title="Thống kê"
             style={{
-              padding: '10px 16px',
+              padding: isMenuCollapsed ? '10px 0' : '10px 16px',
               backgroundColor: activeTab === 'stats' ? '#0284c7' : (isDark ? '#334155' : '#ffffff'),
               color: activeTab === 'stats' ? '#ffffff' : (isDark ? '#f8fafc' : '#0f172a'),
               border: isDark ? '1px solid #475569' : '1px solid #cbd5e1',
               borderRadius: '8px',
-              textAlign: 'left',
+              textAlign: isMenuCollapsed ? 'center' : 'left',
               fontWeight: '600',
               cursor: 'pointer'
             }}
           >
-            Thống kê
+            {isMenuCollapsed ? '▥' : 'Thống kê'}
           </button>
 
           <button 
             onClick={() => setActiveTab('settings')}
+            aria-label="Cài đặt"
+            title="Cài đặt"
             style={{
-              padding: '10px 16px',
+              padding: isMenuCollapsed ? '10px 0' : '10px 16px',
               backgroundColor: activeTab === 'settings' ? '#0284c7' : (isDark ? '#334155' : '#ffffff'),
               color: activeTab === 'settings' ? '#ffffff' : (isDark ? '#f8fafc' : '#0f172a'),
               border: isDark ? '1px solid #475569' : '1px solid #cbd5e1',
               borderRadius: '8px',
-              textAlign: 'left',
+              textAlign: isMenuCollapsed ? 'center' : 'left',
               fontWeight: '600',
               cursor: 'pointer'
             }}
           >
-            Cài đặt
+            {isMenuCollapsed ? '⚙' : 'Cài đặt'}
           </button>
         </div>
       </div>

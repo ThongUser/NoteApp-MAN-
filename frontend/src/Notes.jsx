@@ -243,11 +243,11 @@ export default function Notes({ theme }) {
   };
 
   return (
-    <div style={{ maxWidth: '900px', margin: '0 auto', fontFamily: 'sans-serif', position: 'relative' }}>
+    <div className="page-container" style={{ maxWidth: '900px', margin: '0 auto', fontFamily: 'sans-serif', position: 'relative' }}>
       
       {/* --- TÍNH NĂNG 5: TOAST MESSAGE GÓC MÀN HÌNH --- */}
       {toastMessage && (
-        <div style={{
+        <div className="responsive-toast" style={{
           position: 'fixed',
           bottom: '24px',
           right: '24px',
@@ -319,7 +319,7 @@ export default function Notes({ theme }) {
       </div>
 
       {/* 2. TOOLBAR TÌM KIẾM & LỌC NGÀY */}
-      <div style={{
+      <div className="notes-toolbar" style={{
         backgroundColor: isDark ? '#1e293b' : '#ffffff',
         padding: '16px',
         borderRadius: '12px',
@@ -388,7 +388,7 @@ export default function Notes({ theme }) {
       </div>
 
       {/* 3. FORM TẠO / SỬA GHI CHÚ */}
-      <form onSubmit={handleSaveNote} style={{
+      <form className="notes-form" onSubmit={handleSaveNote} style={{
         backgroundColor: isDark ? '#1e293b' : '#ffffff',
         padding: '16px',
         borderRadius: '12px',
@@ -436,7 +436,7 @@ export default function Notes({ theme }) {
           }}
         />
 
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+        <div className="note-form-actions" style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
           {editingId && (
             <button
               type="button"
@@ -489,7 +489,7 @@ export default function Notes({ theme }) {
           {searchTerm ? `Không tìm thấy ghi chú nào chứa từ khóa "${searchTerm}"` : 'Không có ghi chú nào.'}
         </div>
       ) : (
-        <div style={{
+        <div className="note-grid" style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
           gap: '16px'
@@ -604,7 +604,7 @@ export default function Notes({ theme }) {
 
       {/* 5. NÚT CHUYỂN TRANG */}
       {totalPages > 1 && (
-        <div style={{
+        <div className="note-pagination" style={{
           display: 'flex',
           justifyContent: 'center',
           alignItems: 'center',
@@ -669,13 +669,13 @@ export default function Notes({ theme }) {
 
       {/* MODAL XEM CHI TIẾT */}
       {viewingNote && (
-        <div style={{
+        <div className="responsive-overlay" style={{
           position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
           backgroundColor: 'rgba(0,0,0,0.5)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           zIndex: 1000, padding: '20px'
         }}>
-          <div style={{
+          <div className="responsive-dialog" style={{
             backgroundColor: isDark ? '#1e293b' : '#ffffff',
             padding: '24px', borderRadius: '16px', maxWidth: '500px', width: '100%',
             color: isDark ? '#f8fafc' : '#0f172a',
@@ -709,13 +709,13 @@ export default function Notes({ theme }) {
 
       {/* MODAL XÁC NHẬN XÓA */}
       {deletingNote && (
-        <div style={{
+        <div className="responsive-overlay" style={{
           position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
           backgroundColor: 'rgba(15, 23, 42, 0.65)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           zIndex: 1001, padding: '20px'
         }}>
-          <div style={{
+          <div className="responsive-dialog" style={{
             backgroundColor: isDark ? '#1e293b' : '#ffffff',
             padding: '24px', borderRadius: '16px', maxWidth: '420px', width: '100%',
             color: isDark ? '#f8fafc' : '#0f172a',
@@ -756,13 +756,13 @@ export default function Notes({ theme }) {
 
       {/* MODAL XÁC NHẬN CHUYỂN SANG RIÊNG TƯ */}
       {movingNote && (
-        <div style={{
+        <div className="responsive-overlay" style={{
           position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
           backgroundColor: 'rgba(15, 23, 42, 0.65)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           zIndex: 1002, padding: '20px'
         }}>
-          <div style={{
+          <div className="responsive-dialog" style={{
             backgroundColor: isDark ? '#1e293b' : '#ffffff',
             padding: '24px', borderRadius: '16px', maxWidth: '420px', width: '100%',
             color: isDark ? '#f8fafc' : '#0f172a',

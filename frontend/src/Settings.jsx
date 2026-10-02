@@ -98,7 +98,7 @@ function Settings({ currentTheme }) {
   const isDark = currentTheme === 'dark';
 
   return (
-    <div style={{
+    <div className="settings-panel" style={{
       backgroundColor: isDark ? '#1e293b' : '#ffffff',
       color: isDark ? '#f8fafc' : '#0f172a',
       padding: '24px',
@@ -153,7 +153,7 @@ function Settings({ currentTheme }) {
         <label style={{ display: 'block', marginBottom: '6px', fontWeight: '600' }}>Mật khẩu riêng tư:</label>
         {!isPasswordAuthenticated ? (
           <form onSubmit={handlePasswordUnlock}>
-            <div style={{ display: 'flex', gap: '8px' }}>
+            <div className="settings-password-entry" style={{ display: 'flex', gap: '8px' }}>
               <input
                 type="password"
                 placeholder="Nhập mật khẩu hiện tại"

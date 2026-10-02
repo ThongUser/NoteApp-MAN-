@@ -190,7 +190,7 @@ function PrivateNotes({ theme }) {
   // --- 🔒 MÀN HÌNH MẬT KHẨU ---
   if (!isAuthenticated) {
     return (
-      <div style={{
+      <div className="private-lock-panel" style={{
         backgroundColor: isDark ? '#1e293b' : '#ffffff',
         color: isDark ? '#f8fafc' : '#0f172a',
         padding: '40px 20px',
@@ -282,11 +282,12 @@ function PrivateNotes({ theme }) {
 
   // --- 🔓 MÀN HÌNH GHI CHÚ RIÊNG TƯ ---
   return (
-    <div style={{ maxWidth: '900px', margin: '0 auto', fontFamily: 'sans-serif' }}>
+    <div className="page-container" style={{ maxWidth: '900px', margin: '0 auto', fontFamily: 'sans-serif' }}>
       {toastMessage && (
         <div
           role="status"
           aria-live="polite"
+          className="responsive-toast"
           style={{
             position: 'fixed',
             bottom: '24px',
@@ -311,7 +312,7 @@ function PrivateNotes({ theme }) {
         </div>
       )}
 
-      <div style={{
+      <div className="private-notes-toolbar" style={{
         backgroundColor: isDark ? '#1e293b' : '#FAF9F6',
         padding: '20px',
         borderRadius: '16px',
@@ -377,7 +378,7 @@ function PrivateNotes({ theme }) {
       </div>
 
       {/* 2. KHUNG TÌM KIẾM RIÊNG TƯ */}
-      <div style={{
+      <div className="notes-form" style={{
         backgroundColor: isDark ? '#1e293b' : '#ffffff',
         padding: '16px',
         borderRadius: '12px',
@@ -506,7 +507,7 @@ function PrivateNotes({ theme }) {
           }}
         />
 
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+        <div className="note-form-actions" style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
           <button 
             onClick={handleSave}
             style={{
@@ -557,7 +558,7 @@ function PrivateNotes({ theme }) {
             : `Chưa có ghi chú nào trong danh mục "${selectedFilter}".`}
         </div>
       ) : (
-        <div style={{
+        <div className="note-grid" style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
           gap: '16px'
@@ -645,7 +646,7 @@ function PrivateNotes({ theme }) {
 
       {/* 5. NÚT CHUYỂN TRANG */}
       {totalPages > 1 && (
-        <div style={{
+        <div className="note-pagination" style={{
           display: 'flex',
           justifyContent: 'center',
           alignItems: 'center',
@@ -707,11 +708,11 @@ function PrivateNotes({ theme }) {
 
       {/* MODAL XEM CHI TIẾT */}
       {viewingNote && (
-        <div style={{
+        <div className="responsive-overlay" style={{
           position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)',
           display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '20px'
         }}>
-          <div style={{
+          <div className="responsive-dialog" style={{
             backgroundColor: isDark ? '#1e293b' : '#ffffff', padding: '24px', borderRadius: '16px', maxWidth: '500px', width: '100%',
             maxHeight: '90vh', overflowY: 'auto', color: isDark ? '#f8fafc' : '#0f172a', boxShadow: '0 10px 25px rgba(0,0,0,0.2)'
           }}>
@@ -742,11 +743,11 @@ function PrivateNotes({ theme }) {
 
       {/* MODAL XÁC NHẬN XÓA */}
       {deletingNote && (
-        <div style={{
+        <div className="responsive-overlay" style={{
           position: 'fixed', inset: 0, backgroundColor: 'rgba(15, 23, 42, 0.55)',
           display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1001, padding: '20px'
         }}>
-          <div style={{
+          <div className="responsive-dialog" style={{
             backgroundColor: isDark ? '#1e293b' : '#ffffff', padding: '24px', borderRadius: '16px', maxWidth: '420px', width: '100%',
             color: isDark ? '#f8fafc' : '#0f172a', boxShadow: '0 10px 25px rgba(0,0,0,0.2)'
           }}>

@@ -93,7 +93,7 @@ export default function Stats({ theme }) {
   const chartData = getGroupedData();
 
   return (
-    <div style={{ maxWidth: '800px', margin: '0 auto', fontFamily: 'sans-serif' }}>
+    <div className="page-container" style={{ maxWidth: '800px', margin: '0 auto', fontFamily: 'sans-serif' }}>
       
       {/* KHỐI TIÊU ĐỀ, NÚT LỌC VÀ TỔNG SỐ LƯỢNG */}
       <div style={{
@@ -122,7 +122,7 @@ export default function Stats({ theme }) {
           gap: '12px'
         }}>
           {/* Nút lọc ngày / tháng / năm */}
-          <div style={{ display: 'flex', gap: '10px' }}>
+          <div className="stats-time-filters" style={{ display: 'flex', gap: '10px' }}>
             {[
               { key: 'day', label: 'Theo ngày' },
               { key: 'month', label: 'Theo tháng' },

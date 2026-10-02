@@ -234,3 +234,141 @@ select {
         opacity: 1;
     }
 }
+
+@media (max-width: 640px) {
+    #root {
+        width: 100%;
+        max-width: 100%;
+        border-inline: 0;
+        text-align: left;
+    }
+
+    .app-shell {
+        flex-direction: column;
+        min-width: 0;
+    }
+
+    .app-sidebar {
+        width: 100% !important;
+        padding: 12px !important;
+        border-right: 0 !important;
+        border-bottom: 1px solid #bae6fd;
+    }
+
+    .app-navigation {
+        display: grid !important;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px !important;
+    }
+
+    .app-navigation.is-collapsed {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .app-navigation > button {
+        min-width: 0;
+        padding: 10px 8px !important;
+        text-align: center !important;
+        overflow-wrap: anywhere;
+    }
+
+    .app-main {
+        width: 100%;
+        min-width: 0;
+        padding: 12px !important;
+    }
+
+    .page-container {
+        width: 100%;
+        max-width: none !important;
+    }
+
+    input,
+    textarea,
+    select {
+        box-sizing: border-box;
+        max-width: 100%;
+        min-width: 0;
+    }
+
+    .notes-toolbar,
+    .private-notes-toolbar {
+        padding: 12px !important;
+    }
+
+    .notes-toolbar > div:first-child,
+    .private-notes-toolbar > div:first-child {
+        width: 100%;
+        min-width: 0 !important;
+    }
+
+    .notes-toolbar > select,
+    .private-notes-toolbar > select {
+        width: 100%;
+    }
+
+    .notes-form {
+        padding: 12px !important;
+    }
+
+    .note-form-actions {
+        flex-wrap: wrap;
+    }
+
+    .note-form-actions > button {
+        flex: 1 1 120px;
+        min-height: 40px;
+    }
+
+    .note-grid {
+        grid-template-columns: minmax(0, 1fr) !important;
+    }
+
+    .note-pagination {
+        flex-wrap: wrap;
+    }
+
+    .responsive-overlay {
+        padding: 12px !important;
+    }
+
+    .responsive-dialog {
+        max-height: calc(100dvh - 24px);
+        overflow-y: auto;
+        padding: 18px !important;
+    }
+
+    .responsive-toast {
+        right: 12px !important;
+        bottom: 12px !important;
+        left: 12px;
+        justify-content: center;
+        text-align: center;
+    }
+
+    .private-lock-panel,
+    .settings-panel {
+        width: 100%;
+        max-width: none !important;
+        padding: 20px 16px !important;
+    }
+
+    .settings-password-entry {
+        flex-wrap: wrap;
+    }
+
+    .settings-password-entry > input,
+    .settings-password-entry > button {
+        flex: 1 1 100%;
+    }
+
+    .stats-time-filters {
+        display: grid !important;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        width: 100%;
+    }
+
+    .stats-time-filters > button {
+        padding-inline: 8px !important;
+    }
+}
